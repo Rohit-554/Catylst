@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.jadu.catylst"
+    namespace = "io.jadu.catylst.android"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -41,5 +41,6 @@ android {
 dependencies {
     implementation(projects.composeApp)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.koin.android)
     debugImplementation(libs.compose.uiTooling)
 }
