@@ -1,0 +1,18 @@
+package io.jadu.catylst.data.local
+
+import androidx.room3.ConstructedBy
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
+import androidx.room3.RoomDatabaseConstructor
+
+@Database(
+    entities = [SampleEntity::class],
+    version = 1
+)
+@ConstructedBy(AppDatabaseConstructor::class)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun sampleEntityDao(): SampleEntityDao
+}
+
+@Suppress("NO_ACTUAL_FOR_EXPECT")
+expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>
