@@ -16,28 +16,121 @@ ktor = "3.4.3"
 logback = "1.5.32"
 material3 = "1.11.0-alpha06"
 
+# KSP
+ksp = "2.3.7"
+
+# Room 3.0
+room3 = "3.0.0-alpha01"
+sqliteBundled = "2.6.2"
+
+# Koin
+koin = "4.1.1"
+
+# Navigation3
+navigation3 = "1.1.1"
+
+# Kotlin Serialization (tracks Ktor's dependency version)
+kotlinx-serialization = "1.9.0"
+
+# Coil 3
+coil3 = "3.4.0"
+
+# kotlinx-datetime
+kotlinx-datetime = "0.7.1"
+
+# multiplatform-settings
+multiplatform-settings = "1.3.0"
+
+# Alarmee
+alarmee = "2.4.0"
+
+# Testing
+kotlinx-coroutines-test = "1.10.2"
+turbine = "1.2.0"
+kotest = "5.9.1"
+mockative = "2.2.0"
+
 [libraries]
+# Kotlin
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
-junit = { module = "junit:junit", version.ref = "junit" }
+
+# AndroidX
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
-compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
+
+# Compose
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+# Ktor Server (for :server module)
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
+
+# Ktor Client (for :composeApp module)
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+
+# Room 3.0
+room-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
+
+# Koin
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+
+# Navigation3
+# navigation3-runtime is NOT a standalone artifact in 1.1.1.
+# It is bundled within navigation3-ui. Use navigation3-ui instead.
+navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
+
+# Kotlin Serialization
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+# Coil 3
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
+
+# kotlinx-datetime
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+# multiplatform-settings
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
+multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
+multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
+
+# Alarmee
+alarmee = { module = "io.github.tweener:alarmee", version.ref = "alarmee" }
+
+# Testing
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+mockative = { module = "io.mockative:mockative", version.ref = "mockative" }
+mockative-processor = { module = "io.mockative:mockative-processor", version.ref = "mockative" }
+
+# Other
+junit = { module = "junit:junit", version.ref = "junit" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -47,3 +140,6 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room = { id = "androidx.room3", version.ref = "room3" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
