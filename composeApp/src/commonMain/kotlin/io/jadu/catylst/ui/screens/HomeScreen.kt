@@ -34,6 +34,7 @@ fun HomeScreen(
     onNavigateToPermissions: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToPreferences: () -> Unit,
+    onNavigateToAiDemo: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -92,6 +93,13 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Preferences Demo")
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToAiDemo,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("AI Demo")
                     }
 
                     LazyColumn(
