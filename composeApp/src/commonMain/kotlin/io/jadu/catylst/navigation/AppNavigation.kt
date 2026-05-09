@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.savedstate.serialization.SavedStateConfiguration
+import io.jadu.catylst.ui.screens.AiDemoScreen
 import io.jadu.catylst.ui.screens.DetailScreen
 import io.jadu.catylst.ui.screens.HomeScreen
 import io.jadu.catylst.ui.screens.NotificationDemoScreen
@@ -25,6 +26,7 @@ fun AppNavigation() {
                     subclass(Screen.Permissions::class)
                     subclass(Screen.Notifications::class)
                     subclass(Screen.Preferences::class)
+                    subclass(Screen.AiDemo::class)
                 }
             }
         },
@@ -38,6 +40,7 @@ fun AppNavigation() {
                 onNavigateToPermissions = { backStack.add(Screen.Permissions) },
                 onNavigateToNotifications = { backStack.add(Screen.Notifications) },
                 onNavigateToPreferences = { backStack.add(Screen.Preferences) },
+                onNavigateToAiDemo = { backStack.add(Screen.AiDemo) },
             )
             is Screen.Detail -> DetailScreen(
                 id = screen.id,
@@ -51,6 +54,9 @@ fun AppNavigation() {
                 onBack = { backStack.removeLastOrNull() },
             )
             is Screen.Preferences -> PreferencesDemoScreen(
+                onBack = { backStack.removeLastOrNull() },
+            )
+            is Screen.AiDemo -> AiDemoScreen(
                 onBack = { backStack.removeLastOrNull() },
             )
         }

@@ -1,3 +1,11 @@
+import java.util.Properties
+
+// AI provider keys — read from local.properties at build time.
+// See local.properties.example for the expected key names.
+val localProps = Properties()
+val localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) localPropsFile.inputStream().use { localProps.load(it) }
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
@@ -14,6 +22,10 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "CLAUDE_API_KEY", "\"${localProps.getProperty("claude.api.key", "demo-claude-key")}\"")
+        buildConfigField("String", "GROQ_API_KEY",   "\"${localProps.getProperty("groq.api.key",   "demo-groq-key")}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${localProps.getProperty("gemini.api.key", "demo-gemini-key")}\"")
     }
 
     packaging {
@@ -25,6 +37,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -39,6 +52,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

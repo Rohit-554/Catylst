@@ -1,0 +1,18 @@
+# Copy this file to local.properties and fill in your real values.
+# local.properties is git-ignored — never commit real API keys.
+
+# Android SDK path (set automatically by Android Studio)
+sdk.dir=/path/to/Android/sdk
+
+# ─── AI Provider Keys ────────────────────────────────────────────────────────
+# Get your key from each provider's console, then paste it below.
+# Only the key for your active provider (set in AppModule.kt) is required.
+
+# Anthropic Claude — https://console.anthropic.com
+claude.api.key=""
+
+# Groq (Llama, Gemma, Mixtral) — https://console.groq.com/keys
+groq.api.key=""
+
+# Google Gemini — https://aistudio.google.com/app/apikey
+gemini.api.key=""
