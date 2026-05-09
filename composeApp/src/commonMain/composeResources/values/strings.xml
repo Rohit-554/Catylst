@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Catylst</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_permissions">Permissions</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_preferences">Preferences</string>
+    <string name="action_go_back">Go Back</string>
+    <string name="action_grant">Grant</string>
+    <string name="action_open_settings">Open Settings</string>
+</resources>
