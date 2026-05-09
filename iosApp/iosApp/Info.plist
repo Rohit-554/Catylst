@@ -4,5 +4,13 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take photos</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to show nearby places</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record audio</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>This app sends you reminders and updates</string>
 </dict>
 </plist>

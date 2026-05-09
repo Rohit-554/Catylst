@@ -10,4 +10,7 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data class Detail(val id: Long, val title: String) : Screen
+
+    @Serializable
+    data object Permissions : Screen
 }

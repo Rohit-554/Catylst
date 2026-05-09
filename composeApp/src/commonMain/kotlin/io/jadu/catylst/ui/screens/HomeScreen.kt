@@ -13,6 +13,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.jadu.catylst.ui.viewmodel.HomeUiState
 import io.jadu.catylst.ui.viewmodel.HomeViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -29,7 +31,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HomeScreen(
     onNavigateToDetail: (Long, String) -> Unit,
-    viewModel: HomeViewModel = koinViewModel()
+    onNavigateToPermissions: () -> Unit,
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -38,8 +41,8 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("Catylst") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
             )
         }
     ) { padding ->
@@ -48,51 +51,58 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             when (val currentState = state) {
-                is io.jadu.catylst.ui.viewmodel.HomeUiState.Loading -> {
+                is HomeUiState.Loading -> {
                     Text("Loading...", style = MaterialTheme.typography.bodyLarge)
                 }
-                is io.jadu.catylst.ui.viewmodel.HomeUiState.Success -> {
+                is HomeUiState.Success -> {
                     Text(
                         text = currentState.message,
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
 
                     Button(
                         onClick = { onNavigateToDetail(1, "Sample Detail") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Go to Detail")
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToPermissions,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Permissions Demo")
                     }
 
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                        contentPadding = PaddingValues(vertical = 8.dp),
                     ) {
                         items(currentState.items) { item ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                )
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                ),
                             ) {
                                 Text(
                                     text = item,
                                     modifier = Modifier.padding(16.dp),
-                                    style = MaterialTheme.typography.bodyLarge
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
                         }
                     }
                 }
-                is io.jadu.catylst.ui.viewmodel.HomeUiState.Error -> {
+                is HomeUiState.Error -> {
                     Text(
                         text = currentState.message,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
