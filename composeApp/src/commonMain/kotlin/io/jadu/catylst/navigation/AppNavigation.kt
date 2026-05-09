@@ -7,7 +7,9 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.savedstate.serialization.SavedStateConfiguration
 import io.jadu.catylst.ui.screens.DetailScreen
 import io.jadu.catylst.ui.screens.HomeScreen
+import io.jadu.catylst.ui.screens.NotificationDemoScreen
 import io.jadu.catylst.ui.screens.PermissionDemoScreen
+import io.jadu.catylst.ui.screens.PreferencesDemoScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -21,19 +23,21 @@ fun AppNavigation() {
                     subclass(Screen.Home::class)
                     subclass(Screen.Detail::class)
                     subclass(Screen.Permissions::class)
+                    subclass(Screen.Notifications::class)
+                    subclass(Screen.Preferences::class)
                 }
             }
         },
         Screen.Home
     )
 
-    Crossfade(
-        targetState = backStack.lastOrNull() ?: Screen.Home
-    ) { screen ->
+    Crossfade(targetState = backStack.lastOrNull() ?: Screen.Home) { screen ->
         when (screen) {
             is Screen.Home -> HomeScreen(
                 onNavigateToDetail = { id, title -> backStack.add(Screen.Detail(id, title)) },
                 onNavigateToPermissions = { backStack.add(Screen.Permissions) },
+                onNavigateToNotifications = { backStack.add(Screen.Notifications) },
+                onNavigateToPreferences = { backStack.add(Screen.Preferences) },
             )
             is Screen.Detail -> DetailScreen(
                 id = screen.id,
@@ -41,6 +45,12 @@ fun AppNavigation() {
                 onBack = { backStack.removeLastOrNull() },
             )
             is Screen.Permissions -> PermissionDemoScreen(
+                onBack = { backStack.removeLastOrNull() },
+            )
+            is Screen.Notifications -> NotificationDemoScreen(
+                onBack = { backStack.removeLastOrNull() },
+            )
+            is Screen.Preferences -> PreferencesDemoScreen(
                 onBack = { backStack.removeLastOrNull() },
             )
         }

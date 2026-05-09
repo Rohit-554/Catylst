@@ -32,6 +32,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeScreen(
     onNavigateToDetail: (Long, String) -> Unit,
     onNavigateToPermissions: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToPreferences: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -76,6 +78,20 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Permissions Demo")
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToNotifications,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Notifications Demo")
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToPreferences,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Preferences Demo")
                     }
 
                     LazyColumn(
