@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catylst - KMP Starter Kit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.min.css" />
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2e3250;
+      --accent: #7f52ff;
+      --accent2: #3ddc84;
+      --accent3: #4fc3f7;
+      --text: #e2e8f0;
+      --muted: #8b95b0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .tagline {
+      font-size: 16px;
+      color: var(--muted);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 64px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 780px;
+    }
+
+    a.card {
+      flex: 1;
+      min-width: 300px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 36px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    a.card:hover {
+      transform: translateY(-4px);
+    }
+
+    a.card.arch { border-color: #4a3a7a; }
+    a.card.arch:hover { border-color: var(--accent); }
+    a.card.arch::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at top left, rgba(127,82,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    a.card.agent { border-color: #1a3a4a; }
+    a.card.agent:hover { border-color: var(--accent3); }
+    a.card.agent::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at top left, rgba(79,195,247,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-icon {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .card.arch .card-title { color: #c4b5fd; }
+    .card.agent .card-title { color: var(--accent3); }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .card-arrow {
+      margin-top: 10px;
+      color: var(--border);
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    a.card:hover .card-arrow {
+      transform: translateX(4px);
+    }
+
+    a.card.arch:hover .card-arrow { color: var(--accent); }
+    a.card.agent:hover .card-arrow { color: var(--accent3); }
+
+    .badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 56px;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: 'Google Sans Mono', 'JetBrains Mono', monospace;
+    }
+
+    .badge-purple { background: #2d1f5e; color: #c4b5fd; }
+    .badge-green  { background: #1a3a2a; color: #6ee7b7; }
+    .badge-blue   { background: #1a2e4a; color: #7dd3fc; }
+    .badge-gray   { background: #1e2030; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <p class="logo">Catylst</p>
+
+  <h1>KMP Starter Kit</h1>
+
+  <p class="tagline">
+    Production-ready Kotlin Multiplatform template for Android, iOS, and Desktop -
+    with AI, networking, persistence, and more out of the box.
+  </p>
+
+  <div class="cards">
+    <a class="card arch" href="architecture.html">
+      <div class="card-icon"><i data-lucide="layers" style="width:40px;height:40px;stroke-width:1.2;"></i></div>
+      <div class="card-title">Architecture &amp; Setup</div>
+      <div class="card-desc">
+        Full developer docs - project setup, architecture layers, features,
+        Claude Code skills, build commands, and how to remove what you don't need.
+      </div>
+      <div class="card-arrow"><i data-lucide="arrow-right" style="width:22px;height:22px;stroke-width:1.5;"></i></div>
+    </a>
+
+    <a class="card agent" href="agents.html">
+      <div class="card-icon"><i data-lucide="cpu" style="width:40px;height:40px;stroke-width:1.2;"></i></div>
+      <div class="card-title">Agent Setup Doc</div>
+      <div class="card-desc">
+        Reference for AI agents - module structure, key files, build commands,
+        DI wiring, critical pitfalls, and how to detect setup state.
+      </div>
+      <div class="card-arrow"><i data-lucide="arrow-right" style="width:22px;height:22px;stroke-width:1.5;"></i></div>
+    </a>
+  </div>
+
+  <div class="badges">
+    <span class="badge badge-purple">Kotlin 2.3</span>
+    <span class="badge badge-green">AGP 9</span>
+    <span class="badge badge-blue">CMP 1.11</span>
+    <span class="badge badge-gray">MIT License</span>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
