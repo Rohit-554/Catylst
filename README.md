@@ -1,54 +1,75 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Server.
+# Catylst — Kotlin Multiplatform Starter Kit
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin)
+![AGP](https://img.shields.io/badge/AGP-9.x-3DDC84?logo=android)
+![CMP](https://img.shields.io/badge/Compose%20Multiplatform-1.11-4285F4)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+Production-ready KMP starter kit — Android, iOS, Desktop. Networking, persistence, DI, navigation, notifications, permissions, preferences, and provider-agnostic AI (Claude / Groq / Gemini) out of the box.
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
-
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
-
-### Build and Run Android Application
-
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
-
-### Build and Run Server
-
-To build and run the development version of the server, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :server:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :server:run
-  ```
-
-### Build and Run iOS Application
-
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+**Full documentation:** [`docs/index.html`](docs/index.html)
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Setup
+
+```bash
+git clone https://github.com/your-org/catylst.git myapp
+cd myapp
+
+# Rename the project to your package and app name (run once — then deletes itself)
+bash scripts/setup.sh com.yourname.yourapp YourApp
+```
+
+After the script runs: **File → Sync Project with Gradle Files** in Android Studio, then build.
+
+> The script replaces all `io.jadu.catylst` references, renames source directories, updates the app name in manifests and resources, removes the `docs/` folder, and deletes itself.
+
+---
+
+## AI Services
+
+```bash
+cp local.properties.example local.properties
+# Add your key: claude.api.key / groq.api.key / gemini.api.key
+```
+
+Swap provider with one line in `composeApp/src/commonMain/.../di/AppModule.kt`:
+
+```kotlin
+single<AiProvider> { ClaudeProvider(get(), AppConfig.claudeApiKey) }
+// single<AiProvider> { GroqProvider(get(), AppConfig.groqApiKey) }
+// single<AiProvider> { GeminiProvider(get(), AppConfig.geminiApiKey) }
+```
+
+---
+
+## Build
+
+| Task | Command |
+|------|---------|
+| Android debug | `./gradlew :androidApp:assembleDebug` |
+| Android release | `./gradlew :androidApp:assembleRelease` |
+| iOS compile check | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` |
+| Desktop run | `./gradlew :composeApp:run` |
+| Tests | `./gradlew :composeApp:test` |
+| Regen Room | `./gradlew :composeApp:kspAndroidMain` |
+
+---
+
+## Claude Code Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `kmp-add-screen` | Add a screen end-to-end |
+| `kmp-add-feature` | Entity → DAO → Repository → ViewModel → Screen |
+| `kmp-ai-provider` | Swap or add an AI provider |
+| `kmp-notifications` | Add channels, schedule notifications |
+| `kmp-permissions` | Add a runtime permission |
+| `kmp-remove-feature` | Strip any built-in feature you don't need |
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

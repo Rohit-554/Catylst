@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture & Setup - Catylst</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.min.css" />
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #7f52ff;
+      --accent2: #3ddc84;
+      --accent3: #4fc3f7;
+      --text: #e2e8f0;
+      --muted: #8b95b0;
+      --code-bg: #12151f;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius: 10px;
+      --font-mono: 'Google Sans Mono', 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    nav {
+      width: 260px;
+      min-width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .nav-top {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 14px;
+      transition: color 0.15s;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    .nav-logo { font-size: 16px; font-weight: 700; color: var(--accent); }
+    .nav-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .nav-section {
+      padding: 8px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    nav a.nav-link {
+      display: block;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    nav a.nav-link:hover, nav a.nav-link.active {
+      color: var(--text);
+      border-left-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      padding: 52px 56px 80px;
+      overflow-x: hidden;
+    }
+
+    h1.page-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 48px; }
+
+    section { margin-bottom: 60px; scroll-margin-top: 24px; }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 { font-size: 14px; font-weight: 600; color: var(--accent3); margin: 22px 0 10px; }
+
+    p { color: var(--muted); margin-bottom: 12px; }
+    p strong { color: var(--text); }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #cdd6f4;
+      line-height: 1.6;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: var(--code-bg);
+      color: #a5d6a7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    pre code { background: none; border: none; padding: 0; color: inherit; }
+
+    .kw  { color: #c792ea; }
+    .fn  { color: #82aaff; }
+    .str { color: #c3e88d; }
+    .cm  { color: #546e7a; font-style: italic; }
+    .num { color: #f78c6c; }
+    .cls { color: #ffcb6b; }
+
+    .table-wrap { overflow-x: auto; margin: 14px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th {
+      text-align: left; padding: 10px 14px;
+      background: var(--surface2); color: var(--muted);
+      font-weight: 600; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+    }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+    td:first-child { color: var(--text); font-family: var(--font-mono); font-size: 12.5px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .callout {
+      border-radius: var(--radius); padding: 14px 18px;
+      margin: 16px 0; border-left: 3px solid; font-size: 13.5px;
+    }
+    .callout-info  { background: #0d1f3c; border-color: var(--accent3); color: #93c5fd; }
+    .callout-warn  { background: #1f1a0d; border-color: var(--warn);    color: #fcd34d; }
+    .callout-tip   { background: #0d1f18; border-color: var(--accent2); color: #86efac; }
+    .callout strong { color: inherit; }
+
+    .arch-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 16px 0;
+    }
+    .arch-layer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .arch-layer .layer-name {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; min-width: 80px; color: var(--muted);
+    }
+    .arch-layer .layer-items { display: flex; flex-wrap: wrap; gap: 6px; }
+    .arch-chip {
+      font-size: 11.5px; font-family: var(--font-mono);
+      padding: 3px 9px; border-radius: 4px;
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    }
+    .arch-arrow { text-align: center; color: var(--border); font-size: 18px; line-height: 1; margin: 1px 0; }
+
+    .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+    .skill-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .skill-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .skill-card .skill-name { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+    .skill-card .skill-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+    .pitfall-list { display: flex; flex-direction: column; gap: 10px; }
+    .pitfall {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .pitfall .problem { font-size: 13px; color: #fca5a5; font-family: var(--font-mono); }
+    .pitfall .fix     { font-size: 13px; color: #86efac; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    @media (max-width: 768px) { nav { display: none; } main { padding: 28px 20px 60px; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-top">
+    <a class="nav-back" href="index.html">← Home</a>
+    <div class="nav-logo">Catylst</div>
+    <div class="nav-subtitle">Architecture & Setup</div>
+  </div>
+
+  <div class="nav-section">Getting Started</div>
+  <a class="nav-link" href="#overview"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Overview</a>
+  <a class="nav-link" href="#setup"><i data-lucide="rocket" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Project Setup</a>
+  <a class="nav-link" href="#ai-setup"><i data-lucide="brain-circuit" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>AI Services</a>
+  <a class="nav-link" href="#build"><i data-lucide="hammer" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Build Commands</a>
+
+  <div class="nav-section">Architecture</div>
+  <a class="nav-link" href="#architecture"><i data-lucide="layout-template" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Layers & Pattern</a>
+  <a class="nav-link" href="#modules"><i data-lucide="package" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Module Structure</a>
+  <a class="nav-link" href="#di"><i data-lucide="plug" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Dependency Injection</a>
+  <a class="nav-link" href="#navigation"><i data-lucide="map" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Navigation</a>
+
+  <div class="nav-section">Reference</div>
+  <a class="nav-link" href="#skills"><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Claude Code Skills</a>
+  <a class="nav-link" href="#pitfalls"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Common Pitfalls</a>
+</nav>
+
+<main>
+  <h1 class="page-title">Architecture & Setup</h1>
+  <p class="subtitle">Full developer reference for building on top of Catylst.</p>
+
+  <!-- Overview -->
+  <section id="overview">
+    <h2><i data-lucide="layers" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Overview</h2>
+    <p>Catylst is a fully-wired KMP project with Android, iOS, and Desktop targets. Every built-in feature can be stripped in minutes using the included Claude Code skills.</p>
+    <p>Built-in features: Compose Multiplatform UI, Koin DI, Room 3 database, Ktor networking, Navigation3, WorkManager notifications, cross-platform permissions, multiplatform preferences, and provider-agnostic AI (Claude / Groq / Gemini).</p>
+  </section>
+
+  <!-- Setup -->
+  <section id="setup">
+    <h2><i data-lucide="rocket" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Project Setup</h2>
+    <p>Run the setup script <strong>once</strong> immediately after cloning. It renames everything - package, app name, source directories, iOS config - then deletes itself and the <code>docs/</code> folder.</p>
+    <pre><code><span class="cm"># Clone</span>
+git clone https://github.com/your-org/catylst.git myapp
+cd myapp
+
+<span class="cm"># Rename (run once - self-destructs after)</span>
+bash scripts/setup.sh com.yourname.yourapp YourApp</code></pre>
+
+    <div class="table-wrap"><table>
+      <tr><th>Step</th><th>What happens</th></tr>
+      <tr><td>1</td><td>Replace <code>io.jadu.catylst</code> in every <code>.kt</code>, <code>.kts</code>, <code>.xml</code>, <code>.plist</code>, <code>.pbxproj</code>, <code>.xcconfig</code>, <code>.swift</code></td></tr>
+      <tr><td>2</td><td>Replace <code>Catylst</code> app name in string resources, manifests, iOS xcconfig</td></tr>
+      <tr><td>3</td><td>Update <code>rootProject.name</code> in <code>settings.gradle.kts</code></td></tr>
+      <tr><td>4</td><td>Rename source directory trees across all source sets</td></tr>
+      <tr><td>5</td><td>Delete <code>docs/</code> folder</td></tr>
+      <tr><td>6</td><td>Delete itself</td></tr>
+    </table></div>
+
+    <div class="callout callout-warn"><strong>One-time only.</strong> After it runs, sync Gradle in your IDE then build once to verify.</div>
+
+    <h3>After setup</h3>
+    <pre><code>./gradlew :androidApp:assembleDebug</code></pre>
+  </section>
+
+  <!-- AI -->
+  <section id="ai-setup">
+    <h2><i data-lucide="brain-circuit" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>AI Services Setup</h2>
+    <p>Three providers included. Swap with one line in <code>AppModule.kt</code>.</p>
+    <h3>1. Add your API key</h3>
+    <pre><code>cp local.properties.example local.properties</code></pre>
+    <pre><code><span class="cm"># local.properties - git-ignored, never commit</span>
+claude.api.key=sk-ant-...
+groq.api.key=gsk_...
+gemini.api.key=AIza...</code></pre>
+    <h3>2. Choose your provider</h3>
+    <pre><code><span class="cm">// di/AppModule.kt - activate exactly one line</span>
+<span class="fn">single</span>&lt;<span class="cls">AiProvider</span>&gt; { <span class="cls">ClaudeProvider</span>(<span class="fn">get</span>(), AppConfig.claudeApiKey) }
+<span class="cm">// single&lt;AiProvider&gt; { GroqProvider(get(), AppConfig.groqApiKey) }</span>
+<span class="cm">// single&lt;AiProvider&gt; { GeminiProvider(get(), AppConfig.geminiApiKey) }</span></code></pre>
+    <div class="table-wrap"><table>
+      <tr><th>Provider</th><th>Auth</th><th>Model</th></tr>
+      <tr><td>Claude</td><td><code>x-api-key</code> header + <code>anthropic-version</code></td><td>claude-3-5-sonnet</td></tr>
+      <tr><td>Groq</td><td><code>Authorization: Bearer</code> (OpenAI-compatible)</td><td>llama-3.3-70b</td></tr>
+      <tr><td>Gemini</td><td><code>?key=</code> query param</td><td>gemini-2.0-flash</td></tr>
+    </table></div>
+  </section>
+
+  <!-- Build -->
+  <section id="build">
+    <h2><i data-lucide="hammer" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Build Commands</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Task</th><th>Command</th></tr>
+      <tr><td>Android debug APK</td><td><code>./gradlew :androidApp:assembleDebug</code></td></tr>
+      <tr><td>Android release APK</td><td><code>./gradlew :androidApp:assembleRelease</code></td></tr>
+      <tr><td>iOS compile check</td><td><code>./gradlew :composeApp:compileKotlinIosSimulatorArm64</code></td></tr>
+      <tr><td>Desktop run</td><td><code>./gradlew :composeApp:run</code></td></tr>
+      <tr><td>Common unit tests</td><td><code>./gradlew :composeApp:test</code></td></tr>
+      <tr><td>Android unit tests</td><td><code>./gradlew :composeApp:testDebugUnitTest</code></td></tr>
+      <tr><td>Regen Room code</td><td><code>./gradlew :composeApp:kspAndroidMain</code></td></tr>
+      <tr><td>Build script</td><td><code>bash scripts/build.sh</code></td></tr>
+      <tr><td>Test script</td><td><code>bash scripts/test.sh</code></td></tr>
+    </table></div>
+  </section>
+
+  <!-- Architecture -->
+  <section id="architecture">
+    <h2><i data-lucide="layout-template" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Architecture</h2>
+    <p>MVVM + Repository. Everything shared in <code>commonMain</code>. Only <code>expect</code>/<code>actual</code> declarations touch platform source sets.</p>
+    <div class="arch-box">
+      <div class="arch-layer">
+        <div class="layer-name" style="color:#c4b5fd;">UI</div>
+        <div class="layer-items">
+          <span class="arch-chip">ui/screens/</span>
+          <span class="arch-chip">@Composable</span>
+          <span class="arch-chip">koinViewModel()</span>
+          <span class="arch-chip">koinInject()</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="layer-name" style="color:#7dd3fc;">ViewModel</div>
+        <div class="layer-items">
+          <span class="arch-chip">ui/viewmodel/</span>
+          <span class="arch-chip">ViewModel</span>
+          <span class="arch-chip">StateFlow</span>
+          <span class="arch-chip">viewModelScope</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="layer-name" style="color:#6ee7b7;">Repository</div>
+        <div class="layer-items">
+          <span class="arch-chip">data/repository/</span>
+          <span class="arch-chip">ai/AiRepository</span>
+          <span class="arch-chip">suspend fun</span>
+          <span class="arch-chip">Flow</span>
+        </div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <div class="layer-name" style="color:#fcd34d;">Data</div>
+        <div class="layer-items">
+          <span class="arch-chip">data/local/ (Room)</span>
+          <span class="arch-chip">network/ (Ktor)</span>
+          <span class="arch-chip">data/preferences/</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modules -->
+  <section id="modules">
+    <h2><i data-lucide="package" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Module Structure</h2>
+    <pre><code>YourApp/
+├── androidApp/               <span class="cm"># Android entry point only</span>
+│   └── src/main/kotlin/.../
+│       └── MainActivity.kt   <span class="cm"># Injects API keys, starts Koin</span>
+│
+└── composeApp/               <span class="cm"># ALL shared code</span>
+    └── src/
+        ├── commonMain/kotlin/.../
+        │   ├── ai/               <span class="cm"># AiProvider + Claude/Groq/Gemini</span>
+        │   ├── config/           <span class="cm"># AppConfig (API key holder)</span>
+        │   ├── data/
+        │   │   ├── local/        <span class="cm"># Room entities + DAOs</span>
+        │   │   ├── preferences/  <span class="cm"># AppPreferences</span>
+        │   │   └── repository/
+        │   ├── di/               <span class="cm"># AppModule.kt - all Koin bindings</span>
+        │   ├── navigation/       <span class="cm"># Screen.kt + AppNavigation.kt</span>
+        │   ├── network/          <span class="cm"># HttpClientFactory + ApiService</span>
+        │   ├── notifications/    <span class="cm"># expect NotificationScheduler</span>
+        │   ├── permissions/      <span class="cm"># expect PermissionController</span>
+        │   └── ui/
+        │       ├── screens/
+        │       └── viewmodel/
+        ├── androidMain/      <span class="cm"># actual implementations for Android</span>
+        ├── iosMain/          <span class="cm"># actual implementations for iOS</span>
+        └── desktopMain/      <span class="cm"># actual implementations for Desktop</span></code></pre>
+    <div class="callout callout-info"><strong>Rule:</strong> Put everything in <code>commonMain</code>. Only use platform source sets for <code>actual</code> implementations of <code>expect</code> declarations.</div>
+  </section>
+
+  <!-- DI -->
+  <section id="di">
+    <h2><i data-lucide="plug" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Dependency Injection</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Platform</th><th>Where Koin starts</th></tr>
+      <tr><td>Android</td><td><code>MainActivity.onCreate</code></td></tr>
+      <tr><td>iOS</td><td><code>MainViewController.kt</code> (iosMain)</td></tr>
+      <tr><td>Desktop</td><td><code>main.kt</code> (desktopMain)</td></tr>
+    </table></div>
+    <p><code>appModule()</code> - all shared singletons and ViewModels. <code>platformModule()</code> - platform-specific actuals like <code>NotificationScheduler</code> and <code>ObservableSettings</code>.</p>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td>di/AppModule.kt</td><td>All Koin bindings - start here when debugging DI</td></tr>
+      <tr><td>di/PlatformModule.kt</td><td>expect declaration, implemented per source set</td></tr>
+      <tr><td>config/AppConfig.kt</td><td>AI API key holder, set in MainActivity before startKoin</td></tr>
+    </table></div>
+  </section>
+
+  <!-- Navigation -->
+  <section id="navigation">
+    <h2><i data-lucide="map" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Navigation</h2>
+    <p>Navigation3 with <code>rememberNavBackStack()</code> and <code>Crossfade</code>. <strong>Never use <code>NavDisplay</code></strong> - it is not KMP-compatible.</p>
+    <h3>Adding a screen</h3>
+    <pre><code><span class="cm">// 1. Screen.kt</span>
+<span class="kw">@Serializable</span>
+<span class="kw">data object</span> <span class="cls">Xxx</span> : <span class="cls">Screen</span>()
+
+<span class="cm">// 2. AppNavigation.kt - SerializersModule</span>
+<span class="fn">subclass</span>(<span class="cls">Screen</span>.<span class="cls">Xxx</span>::<span class="kw">class</span>)
+
+<span class="cm">// 3. AppNavigation.kt - Crossfade branch</span>
+<span class="kw">is</span> <span class="cls">Screen</span>.<span class="cls">Xxx</span> -> <span class="cls">XxxScreen</span>(onBack = { backStack.removeLastOrNull() })
+
+<span class="cm">// 4. HomeScreen.kt - button</span>
+<span class="cls">OutlinedButton</span>(onClick = onNavigateToXxx) { <span class="cls">Text</span>(<span class="str">"Open Xxx"</span>) }</code></pre>
+    <div class="callout callout-tip">Use the <code>kmp-add-screen</code> Claude Code skill for the full guided walkthrough.</div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills">
+    <h2><i data-lucide="zap" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Claude Code Skills</h2>
+    <p>Invoke by name in Claude Code for guided, step-by-step instructions tailored to this codebase.</p>
+    <div class="skill-grid">
+      <div class="skill-card"><div class="skill-name">kmp-add-screen</div><div class="skill-desc">Add a screen end-to-end - Screen object, navigation wiring, composable, optional ViewModel.</div></div>
+      <div class="skill-card"><div class="skill-name">kmp-add-feature</div><div class="skill-desc">Full feature scaffold: Entity → DAO → Repository → ViewModel → Screen with Koin wiring.</div></div>
+      <div class="skill-card"><div class="skill-name">kmp-ai-provider</div><div class="skill-desc">Swap or extend the AI provider. Covers auth patterns and adding a custom provider.</div></div>
+      <div class="skill-card"><div class="skill-name">kmp-notifications</div><div class="skill-desc">Add channels, schedule and cancel notifications.</div></div>
+      <div class="skill-card"><div class="skill-name">kmp-permissions</div><div class="skill-desc">Add a runtime permission - enum, manifest, plist, composable usage.</div></div>
+      <div class="skill-card"><div class="skill-name">kmp-remove-feature</div><div class="skill-desc">Strip any built-in feature with exact file and Gradle steps.</div></div>
+    </div>
+  </section>
+
+  <!-- Pitfalls -->
+  <section id="pitfalls">
+    <h2><i data-lucide="alert-triangle" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Common Pitfalls</h2>
+    <div class="pitfall-list">
+      <div class="pitfall"><div class="problem">BuildConfig unresolved in composeApp</div><div class="fix">Lives in :androidApp only. Use AppConfig object in commonMain instead.</div></div>
+      <div class="pitfall"><div class="problem">NavDisplay not found</div><div class="fix">Not KMP-compatible. Use Crossfade + rememberNavBackStack() as in AppNavigation.kt.</div></div>
+      <div class="pitfall"><div class="problem">java.util.Properties in defaultConfig {}</div><div class="fix">Declare Properties at .kts file top-level, not inside defaultConfig block.</div></div>
+      <div class="pitfall"><div class="problem">Room entity changes not picked up</div><div class="fix">Run ./gradlew :composeApp:kspAndroidMain after any Entity/DAO change.</div></div>
+      <div class="pitfall"><div class="problem">Koin inject fails at runtime</div><div class="fix">Check binding exists in appModule() or platformModule().</div></div>
+      <div class="pitfall"><div class="problem">buildConfigField value is empty</div><div class="fix">Use "\"${value}\"" format in .kts - bare quotes get stripped.</div></div>
+      <div class="pitfall"><div class="problem">Inline qualified import</div><div class="fix">Add import at file top, use unqualified name in body.</div></div>
+      <div class="pitfall"><div class="problem">KN 2.x ObjC method not found (iOS)</div><div class="fix">Use ClassName.Companion.method() instead of top-level call.</div></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('nav a.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
