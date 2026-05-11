@@ -21,7 +21,7 @@ If you need an enterprise-grade multi-module template with 30+ Gradle modules, h
 ## Setup
 
 ```bash
-git clone https://github.com/your-org/catylst.git myapp
+git clone https://github.com/Rohit-554/Catylst.git myapp
 cd myapp
 
 # Rename the project to your package and app name (run once — then deletes itself)
