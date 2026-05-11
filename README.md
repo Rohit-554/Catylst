@@ -23,13 +23,13 @@ If you need an enterprise-grade multi-module template with 30+ Gradle modules, h
 Run this one-liner — it clones the repo, renames everything to your package, and leaves a ready-to-open project:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/rohit-554/Catylst/main/scripts/install.sh) com.yourname.yourapp YourApp
+bash <(curl -sSL https://raw.githubusercontent.com/Rohit-554/Catylst/main/scripts/install.sh) com.yourname.yourapp YourApp
 ```
 
 Or clone manually and run setup yourself:
 
 ```bash
-git clone https://github.com/rohit-554/Catylst.git myapp
+git clone https://github.com/Rohit-554/Catylst.git myapp
 cd myapp
 
 # Rename the project to your package and app name (run once - then deletes itself)
