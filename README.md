@@ -14,21 +14,29 @@
 
 If you need an enterprise-grade multi-module template with 30+ Gradle modules, heavy CI/CD infrastructure, and fintech-specific abstractions, check out [openMF/kmp-project-template](https://github.com/openMF/kmp-project-template) instead.
 
-**Full documentation:** [`docs/index.html`](docs/index.html)
+**Full documentation:** [rohit-554.github.io/Catylst](https://rohit-554.github.io/Catylst/)
 
 ---
 
-## Setup
+## Quick Start
+
+Run this one-liner — it clones the repo, renames everything to your package, and leaves a ready-to-open project:
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/Rohit-554/Catylst/main/scripts/install.sh) com.yourname.yourapp YourApp
+```
+
+Or clone manually and run setup yourself:
 
 ```bash
 git clone https://github.com/Rohit-554/Catylst.git myapp
 cd myapp
 
-# Rename the project to your package and app name (run once — then deletes itself)
+# Rename the project to your package and app name (run once - then deletes itself)
 bash scripts/setup.sh com.yourname.yourapp YourApp
 ```
 
-After the script runs: **File → Sync Project with Gradle Files** in Android Studio, then build.
+After setup: **File -> Sync Project with Gradle Files** in Android Studio, then build.
 
 > The script replaces all `io.jadu.catylst` references, renames source directories, updates the app name in manifests and resources, removes the `docs/` folder, and deletes itself.
 
