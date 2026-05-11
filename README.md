@@ -1,11 +1,18 @@
-# Catylst — Kotlin Multiplatform Starter Kit
+# Catylst - Kotlin Multiplatform Starter Kit
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin)
 ![AGP](https://img.shields.io/badge/AGP-9.x-3DDC84?logo=android)
 ![CMP](https://img.shields.io/badge/Compose%20Multiplatform-1.11-4285F4)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Production-ready KMP starter kit — Android, iOS, Desktop. Networking, persistence, DI, navigation, notifications, permissions, preferences, and provider-agnostic AI (Claude / Groq / Gemini) out of the box.
+**Batteries-included KMP starter kit for solo developers and small teams.** Android, iOS, Desktop from a single codebase — with working AI integration, push notifications, runtime permissions, local persistence, and modern navigation out of the box.
+
+**Who this is for:**
+- **Beginners** learning KMP who want a *working app* they can run, read, and modify — not an empty scaffold
+- **Intermediate developers** shipping MVPs and side projects who need AI-powered features (Claude / Groq / Gemini) without wiring up providers from scratch
+- **Teams** who want the latest stable versions (Navigation3, Material3 Expressive, Room 3, Ktor 3) pre-configured and battle-tested
+
+If you need an enterprise-grade multi-module template with 30+ Gradle modules, heavy CI/CD infrastructure, and fintech-specific abstractions, check out [openMF/kmp-project-template](https://github.com/openMF/kmp-project-template) instead.
 
 **Full documentation:** [`docs/index.html`](docs/index.html)
 
