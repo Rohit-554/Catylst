@@ -5,7 +5,7 @@
 ![CMP](https://img.shields.io/badge/Compose%20Multiplatform-1.11-4285F4)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-**Batteries-included KMP starter kit for solo developers and small teams.** Android, iOS, Desktop from a single codebase — with working AI integration, push notifications, runtime permissions, local persistence, and modern navigation out of the box.
+**KMP starter kit for solo developers and small teams.** Android, iOS, Desktop from a single codebase — with working AI integration, push notifications, runtime permissions, local persistence, and modern navigation out of the box.
 
 **Who this is for:**
 - **Beginners** learning KMP who want a *working app* they can run, read, and modify — not an empty scaffold
