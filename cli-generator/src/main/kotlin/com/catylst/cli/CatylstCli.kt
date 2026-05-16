@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
@@ -22,8 +21,9 @@ class CatylstCli : CliktCommand(
         Generate a customized Kotlin Multiplatform project with selected features.
         
         Examples:
-          catylst --package com.example.myapp --name MyApp --features ai,ktor,room
-          catylst --interactive
+          catylst --interactive                    # Wizard mode
+          catylst -p com.example.app -n MyApp      # Quick generate with defaults
+          catylst -p com.app -n App -f ai,ktor     # Select specific features
     """.trimIndent()
 ) {
 
@@ -44,7 +44,7 @@ class CatylstCli : CliktCommand(
 
     private val features by option(
         "--features", "-f",
-        help = "Comma-separated feature IDs. Available: ai, notifications, permissions, room, preferences, ktor, server"
+        help = "Comma-separated feature IDs: ai, notifications, permissions, room, preferences, ktor, server"
     )
 
     private val noSampleCode by option(
@@ -74,7 +74,7 @@ class CatylstCli : CliktCommand(
 
     private val interactive by option(
         "--interactive", "-i",
-        help = "Run in interactive mode with prompts"
+        help = "Run in interactive wizard mode"
     ).flag(default = false)
 
     override fun run() {
@@ -119,18 +119,37 @@ class CatylstCli : CliktCommand(
     ): InteractiveResult {
         echo("🚀 Welcome to Catylst KMP Project Generator!\n")
 
-        val pkg = packageName ?: prompt("Package name (e.g., com.example.myapp)")!!
-        val app = appName ?: prompt("App name (e.g., MyApp)")!!
-        val proj = projectName ?: app
-
-        echo("\n📋 Available features:")
-        manifest.features.forEach { f ->
-            val defaultMark = if (f.default) " (default)" else ""
-            echo("  [${f.id}] ${f.name} — ${f.description}$defaultMark")
+        // Step 1: Package name
+        val pkg = if (packageName != null) packageName!! else {
+            echo("📦 Package name (e.g., com.example.myapp):")
+            readlnOrNull()?.trim()?.takeIf { it.isNotBlank() }
+                ?: error("Package name is required")
         }
 
+        // Step 2: App name
+        val app = if (appName != null) appName!! else {
+            echo("📱 App name (e.g., MyApp):")
+            readlnOrNull()?.trim()?.takeIf { it.isNotBlank() }
+                ?: error("App name is required")
+        }
+        val proj = projectName ?: app
+
+        // Step 3: Feature selection
+        echo("\n📋 Available features:")
+        manifest.features.forEach { f ->
+            val defaultMark = if (f.default) " [default]" else ""
+            echo("  ${f.id.padEnd(15)} — ${f.name}$defaultMark")
+        }
+        echo("")
+
         val defaultFeatures = manifest.features.filter { it.default }.joinToString(",") { it.id }
-        val featuresInput = features ?: prompt("\nSelect features (comma-separated, or 'all' for defaults)", default = defaultFeatures)!!
+        val featuresInput = if (features != null) {
+            features!!
+        } else {
+            echo("Select features (comma-separated, or press Enter for defaults: $defaultFeatures):")
+            val input = readlnOrNull()?.trim()
+            if (input.isNullOrBlank()) defaultFeatures else input
+        }
 
         val selectedFeatures = if (featuresInput.lowercase() == "all") {
             manifest.features.filter { it.default }.map { it.id }.toSet()
@@ -138,28 +157,51 @@ class CatylstCli : CliktCommand(
             featuresInput.split(",").map { it.trim() }.filter { it in featureIds }.toSet()
         }
 
-        // Resolve dependencies
+        // Resolve dependencies (e.g., AI requires Ktor)
         val resolvedFeatures = resolveDependencies(selectedFeatures, manifest.features)
 
+        // Step 4: Sample code
         val sample = if (noSampleCode) {
             false
         } else {
-            val input = prompt("Include sample/demo code? [Y/n]", default = "Y")!!
-            input.lowercase() in listOf("y", "yes", "")
+            echo("")
+            echo("Include sample/demo code? [Y/n] (default: Y):")
+            val input = readlnOrNull()?.trim()?.lowercase()
+            input == null || input.isBlank() || input == "y" || input == "yes"
         }
 
+        // Step 5: AI provider
         val ai = if ("ai" in resolvedFeatures) {
-            val input = prompt("Select AI provider [claude/groq/gemini/none]", default = "claude")!!
-            AiProvider.valueOf(input.uppercase())
+            echo("")
+            echo("Select AI provider [claude/groq/gemini] (default: claude):")
+            val input = readlnOrNull()?.trim()?.lowercase()
+            when (input) {
+                "groq" -> AiProvider.GROQ
+                "gemini" -> AiProvider.GEMINI
+                "none" -> AiProvider.NONE
+                else -> AiProvider.CLAUDE
+            }
         } else {
             AiProvider.NONE
         }
 
-        val themeInput = themeColor ?: prompt("Theme seed color (hex, or 'skip' for default)", default = "skip")!!
-        val themeSeed = if (themeInput.lowercase() == "skip") null else themeInput
+        // Step 6: Theme color
+        val themeSeed = if (themeColor != null) {
+            themeColor
+        } else {
+            echo("")
+            echo("Theme seed color (hex, e.g., #6750A4, or press Enter to skip):")
+            val input = readlnOrNull()?.trim()
+            if (input.isNullOrBlank()) null else input
+        }
+
+        // Step 7: Expressive motion
         val expressive = themeExpressive || run {
-            val input = prompt("Enable M3 Expressive motion? [y/N]", default = "N")!!
-            input.lowercase() == "y"
+            if (themeSeed != null) {
+                echo("Enable M3 Expressive motion? [y/N] (default: N):")
+                val input = readlnOrNull()?.trim()?.lowercase()
+                input == "y" || input == "yes"
+            } else false
         }
 
         return InteractiveResult(pkg, app, proj, resolvedFeatures, sample, ai, themeSeed, expressive)
