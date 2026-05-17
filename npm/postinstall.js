@@ -35,6 +35,20 @@ const bold   = (s) => `\x1b[1m${s}\x1b[0m`;
 const dim    = (s) => `\x1b[2m${s}\x1b[0m`;
 const purple = (s) => `\x1b[35m${s}\x1b[0m`;
 
+/*
+ * npm v7+ pipes ALL postinstall stdout/stderr — nothing reaches the terminal.
+ * fs.writeSync on /dev/tty bypasses the pipe synchronously; no open handles,
+ * no event-loop delay, process exits the moment the last write completes.
+ * Falls back to stderr fd (2) on CI / Windows where /dev/tty is unavailable.
+ */
+let ttyFd = 2;
+try {
+  fs.accessSync("/dev/tty", fs.constants.W_OK);
+  ttyFd = fs.openSync("/dev/tty", "w");
+} catch (_) {}
+const print    = (s) => fs.writeSync(ttyFd, s + "\n");
+const printRaw = (s) => fs.writeSync(ttyFd, s);
+
 // ── Tips & jokes shown while cloning / downloading ───────────────────────────
 
 const MESSAGES = [
@@ -70,7 +84,7 @@ function startTips() {
     const msg  = msgs[tipIndex % msgs.length];
     const kind = msg.startsWith("joke") ? purple("joke ") : cyan("tip  ");
     const text = msg.replace(/^(tip|joke)\s+/, "");
-    process.stdout.write(`\r  ${kind}  ${dim(text)}${" ".repeat(10)}`);
+    printRaw(`\r  ${kind}  ${dim(text)}${" ".repeat(10)}`);
     tipIndex++;
     tipTimer = setTimeout(showNext, 3000);
   }
@@ -80,15 +94,15 @@ function startTips() {
 
 function stopTips(finalLine) {
   if (tipTimer) { clearTimeout(tipTimer); tipTimer = null; }
-  process.stdout.write(`\r${finalLine}${" ".repeat(30)}\n`);
+  printRaw(`\r${finalLine}${" ".repeat(30)}\n`);
 }
 
 // ── Header ───────────────────────────────────────────────────────────────────
 
-console.log("");
-console.log(bold("  Catylst KMP Project Generator"));
-console.log(dim("  ────────────────────────────────────────"));
-console.log("");
+print("");
+print(bold("  Catylst KMP Project Generator"));
+print(dim("  ────────────────────────────────────────"));
+print("");
 
 // ── 1. Check Java ────────────────────────────────────────────────────────────
 
@@ -97,17 +111,17 @@ function checkJava() {
   const output = result.stderr || result.stdout || "";
   const match = output.match(/version "(\d+)/);
   if (!match) {
-    console.error(yellow("  ✗  Java not found. Install JDK 17+ from https://adoptium.net"));
+    print(yellow("  ✗  Java not found. Install JDK 17+ from https://adoptium.net"));
     process.exit(1);
   }
   const major = parseInt(match[1], 10);
   if (major < 17) {
-    console.error(
+    print(
       yellow(`  ✗  JDK 17+ required (found ${major}). Install from https://adoptium.net`)
     );
     process.exit(1);
   }
-  console.log(green(`  ✓  Java ${major}`));
+  print(green(`  ✓  Java ${major}`));
 }
 
 // ── 2. Clone / update template ───────────────────────────────────────────────
@@ -129,7 +143,7 @@ function setupTemplate() {
       stopTips(yellow("  ⚠  Could not update template (offline?). Using existing."));
     }
   } else {
-    console.log(dim("  ↓  Cloning template — hang tight...\n"));
+    printRaw(dim("  ↓  Cloning template — hang tight...\n"));
     startTips();
     fs.rmSync(TEMPLATE_DIR, { recursive: true, force: true });
     const result = spawnSync(
@@ -140,8 +154,8 @@ function setupTemplate() {
     if (result.status !== 0) {
       stopTips("");
       const msg = result.stderr ? result.stderr.toString().trim() : "unknown error";
-      console.error(yellow("  ✗  Failed to clone template. Is git installed?"));
-      console.error(dim(`     ${msg}`));
+      print(yellow("  ✗  Failed to clone template. Is git installed?"));
+      print(dim(`     ${msg}`));
       process.exit(1);
     }
     stopTips(green("  ✓  Template ready"));
@@ -170,12 +184,12 @@ function downloadJar() {
   );
   if (fs.existsSync(localJar)) {
     fs.copyFileSync(localJar, JAR_PATH);
-    console.log(green("  ✓  Using local build"));
+    print(green("  ✓  Using local build"));
     return Promise.resolve();
   }
 
   return new Promise((resolve, reject) => {
-    console.log(dim("  ↓  Downloading CLI — almost there...\n"));
+    printRaw(dim("  ↓  Downloading CLI — almost there...\n"));
     startTips();
 
     // Write to a temp file first — atomic rename prevents race conditions
@@ -220,7 +234,7 @@ function downloadJar() {
 
               const digest = hash.digest("hex");
               stopTips(green("  ✓  CLI ready"));
-              console.log(dim(`     SHA-256: ${digest}`));
+              print(dim(`     SHA-256: ${digest}`));
               resolve();
             });
           });
@@ -249,13 +263,17 @@ function downloadJar() {
   setupTemplate();
   await downloadJar();
 
-  console.log("");
-  console.log(dim("  ────────────────────────────────────────"));
-  console.log("  " + green(bold("All done!")) + " Start your project:");
-  console.log("");
-  console.log("  " + cyan("catylst --interactive"));
-  console.log("");
-  console.log("  " + dim("Or non-interactive:"));
-  console.log("  " + dim("catylst --package com.example.app --name MyApp"));
-  console.log("");
+  print("");
+  print(dim("  ────────────────────────────────────────"));
+  print("  " + green(bold("All done!")) + " Start your project:");
+  print("");
+  print("  " + cyan("catylst --interactive"));
+  print("");
+  print("  " + dim("Or non-interactive:"));
+  print("  " + dim("catylst --package com.example.app --name MyApp"));
+  print("");
+  print(yellow("  Before building, add your Android SDK path to local.properties:"));
+  print(dim("  sdk.dir=/Users/<you>/Library/Android/sdk"));
+  print("");
+  process.exit(0);
 })();

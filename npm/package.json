@@ -1,6 +1,6 @@
 {
   "name": "catylst",
-  "version": "1.0.6",
+  "version": "1.0.17",
   "description": "Generate customized Kotlin Multiplatform projects with an interactive wizard",
   "keywords": [
     "kotlin",

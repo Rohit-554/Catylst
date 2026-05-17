@@ -105,6 +105,8 @@ object ProjectGenerator {
         println("")
         println("Next steps:")
         println("  cd ${projectDir.name}")
+        println("  Before building, add your Android SDK path to local.properties:")
+        println("    sdk.dir=/Users/<you>/Library/Android/sdk")
         println("  ./gradlew :androidApp:assembleDebug")
     }
 
