@@ -11,6 +11,10 @@ object ProjectCleaner {
         // Remove .claude/ directory
         File(projectDir, ".claude").deleteRecursively()
 
+        // Remove installer/tooling dirs not relevant to the generated project
+        File(projectDir, "npm").deleteRecursively()
+        File(projectDir, "cli-generator").deleteRecursively()
+
         // Remove docs/ folder
         File(projectDir, "docs").deleteRecursively()
 
