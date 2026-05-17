@@ -1,0 +1,284 @@
+{
+  "features": [
+    {
+      "id": "ai",
+      "name": "AI Integration",
+      "description": "Claude / Groq / Gemini AI chat",
+      "default": true,
+      "requires": ["ktor"],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/ai/",
+        "composeApp/src/commonMain/kotlin/{pkg}/config/AppConfig.kt"
+      ],
+      "gradleDeps": [],
+      "kspProcessors": [],
+      "tomlVersionKeys": [],
+      "tomlPluginKeys": [],
+      "koinBindings": ["AiProvider", "AiRepository"],
+      "platformBindings": {},
+      "screens": ["AiDemo"],
+      "buildConfigFields": ["CLAUDE_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY"],
+      "iosInfoPlistKeys": []
+    },
+    {
+      "id": "notifications",
+      "name": "Push Notifications",
+      "description": "WorkManager (Android) / UNUserNotificationCenter (iOS)",
+      "default": true,
+      "requires": [],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/notifications/",
+        "composeApp/src/androidMain/kotlin/{pkg}/notifications/NotificationScheduler.android.kt",
+        "composeApp/src/androidMain/kotlin/{pkg}/notifications/NotificationWorker.kt",
+        "composeApp/src/iosMain/kotlin/{pkg}/notifications/NotificationScheduler.ios.kt",
+        "composeApp/src/desktopMain/kotlin/{pkg}/notifications/NotificationScheduler.jvm.kt"
+      ],
+      "gradleDeps": ["workmanager", "alarmee"],
+      "kspProcessors": [],
+      "tomlVersionKeys": ["workmanager", "alarmee"],
+      "tomlPluginKeys": [],
+      "koinBindings": [],
+      "platformBindings": {
+        "android": ["NotificationScheduler"],
+        "ios": ["NotificationScheduler"],
+        "desktop": []
+      },
+      "screens": ["Notifications"],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": []
+    },
+    {
+      "id": "permissions",
+      "name": "Runtime Permissions",
+      "description": "You can select specific permissions in the next step",
+      "default": true,
+      "requires": [],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/permissions/",
+        "composeApp/src/androidMain/kotlin/{pkg}/permissions/PermissionController.android.kt",
+        "composeApp/src/iosMain/kotlin/{pkg}/permissions/PermissionController.ios.kt",
+        "composeApp/src/iosMain/kotlin/{pkg}/permissions/LocationPermissionDelegate.kt",
+        "composeApp/src/desktopMain/kotlin/{pkg}/permissions/PermissionController.jvm.kt"
+      ],
+      "gradleDeps": [],
+      "kspProcessors": [],
+      "tomlVersionKeys": [],
+      "tomlPluginKeys": [],
+      "koinBindings": [],
+      "platformBindings": {
+        "android": ["PermissionController"],
+        "ios": ["PermissionController"],
+        "desktop": ["PermissionController"]
+      },
+      "screens": ["Permissions"],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": [
+        "NSCameraUsageDescription",
+        "NSLocationWhenInUseUsageDescription",
+        "NSMicrophoneUsageDescription",
+        "NSPhotoLibraryUsageDescription"
+      ],
+      "permissionTypes": [
+        {
+          "id": "CAMERA",
+          "label": "Camera",
+          "iosInfoPlistKey": "NSCameraUsageDescription",
+          "locationDelegate": false
+        },
+        {
+          "id": "LOCATION",
+          "label": "Location",
+          "iosInfoPlistKey": "NSLocationWhenInUseUsageDescription",
+          "locationDelegate": true
+        },
+        {
+          "id": "NOTIFICATIONS",
+          "label": "Notifications",
+          "iosInfoPlistKey": null,
+          "locationDelegate": false
+        },
+        {
+          "id": "RECORD_AUDIO",
+          "label": "Microphone / Record Audio",
+          "iosInfoPlistKey": "NSMicrophoneUsageDescription",
+          "locationDelegate": false
+        },
+        {
+          "id": "STORAGE",
+          "label": "Storage",
+          "iosInfoPlistKey": "NSPhotoLibraryUsageDescription",
+          "locationDelegate": false
+        }
+      ]
+    },
+    {
+      "id": "room",
+      "name": "Room Database",
+      "description": "Local persistence with Room 3.0",
+      "default": true,
+      "requires": [],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/data/local/",
+        "composeApp/src/androidMain/kotlin/{pkg}/data/local/DatabaseFactory.android.kt",
+        "composeApp/src/iosMain/kotlin/{pkg}/data/local/DatabaseFactory.ios.kt",
+        "composeApp/src/iosMain/kotlin/{pkg}/data/local/DocumentDirectory.kt",
+        "composeApp/src/desktopMain/kotlin/{pkg}/data/local/DatabaseFactory.jvm.kt"
+      ],
+      "gradleDeps": ["room-runtime", "sqlite-bundled"],
+      "kspProcessors": ["room-compiler"],
+      "tomlVersionKeys": ["room3", "sqliteBundled"],
+      "tomlPluginKeys": ["room"],
+      "koinBindings": ["AppDatabase"],
+      "platformBindings": {},
+      "screens": ["Detail"],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": []
+    },
+    {
+      "id": "preferences",
+      "name": "Preferences",
+      "description": "Key-value storage with multiplatform-settings",
+      "default": true,
+      "requires": [],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/data/preferences/AppPreferences.kt"
+      ],
+      "gradleDeps": ["multiplatform-settings", "multiplatform-settings-coroutines", "multiplatform-settings-no-arg"],
+      "kspProcessors": [],
+      "tomlVersionKeys": ["multiplatform-settings"],
+      "tomlPluginKeys": [],
+      "koinBindings": ["AppPreferences"],
+      "platformBindings": {
+        "android": ["ObservableSettings"],
+        "ios": ["ObservableSettings"],
+        "desktop": ["ObservableSettings"]
+      },
+      "screens": ["Preferences"],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": []
+    },
+    {
+      "id": "ktor",
+      "name": "Networking (Ktor)",
+      "description": "HTTP client with Ktor",
+      "default": true,
+      "requires": [],
+      "files": [
+        "composeApp/src/commonMain/kotlin/{pkg}/network/HttpClientFactory.kt",
+        "composeApp/src/commonMain/kotlin/{pkg}/network/ApiService.kt"
+      ],
+      "gradleDeps": [
+        "ktor-client-core",
+        "ktor-client-content-negotiation",
+        "ktor-serialization-kotlinx-json",
+        "ktor-client-logging",
+        "ktor-client-okhttp",
+        "ktor-client-darwin"
+      ],
+      "kspProcessors": [],
+      "tomlVersionKeys": ["ktor"],
+      "tomlPluginKeys": [],
+      "koinBindings": ["HttpClient", "ApiService"],
+      "platformBindings": {},
+      "screens": [],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": []
+    },
+    {
+      "id": "server",
+      "name": "Ktor Server",
+      "description": "Backend server module",
+      "default": false,
+      "requires": [],
+      "files": ["server/"],
+      "gradleDeps": ["ktor-serverCore", "ktor-serverNetty", "logback"],
+      "kspProcessors": [],
+      "tomlVersionKeys": ["logback"],
+      "tomlPluginKeys": [],
+      "koinBindings": [],
+      "platformBindings": {},
+      "screens": [],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": [],
+      "settingsInclude": [":server"]
+    },
+    {
+      "id": "agent-skills",
+      "name": "AI Agent Skills",
+      "description": "SKILL.md files that teach your AI assistant Kotlin/Android tasks",
+      "default": false,
+      "requires": [],
+      "files": [],
+      "gradleDeps": [],
+      "kspProcessors": [],
+      "tomlVersionKeys": [],
+      "tomlPluginKeys": [],
+      "koinBindings": [],
+      "platformBindings": {},
+      "screens": [],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": [],
+      "settingsInclude": []
+    }
+  ],
+  "sampleCode": {
+    "description": "Demo screens and ViewModels that show how to use each feature",
+    "default": true,
+    "perFeature": {
+      "ai": {
+        "files": [
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/screens/AiDemoScreen.kt",
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/viewmodel/AiViewModel.kt"
+        ],
+        "screens": ["AiDemo"],
+        "koinBindings": ["AiViewModel"],
+        "homeButtons": ["AI Demo"]
+      },
+      "notifications": {
+        "files": [
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/screens/NotificationDemoScreen.kt"
+        ],
+        "screens": ["Notifications"],
+        "koinBindings": [],
+        "homeButtons": ["Notifications Demo"]
+      },
+      "permissions": {
+        "files": [
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/screens/PermissionDemoScreen.kt"
+        ],
+        "screens": ["Permissions"],
+        "koinBindings": [],
+        "homeButtons": ["Permissions Demo"]
+      },
+      "preferences": {
+        "files": [
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/screens/PreferencesDemoScreen.kt"
+        ],
+        "screens": ["Preferences"],
+        "koinBindings": [],
+        "homeButtons": ["Preferences Demo"]
+      },
+      "room": {
+        "files": [
+          "composeApp/src/commonMain/kotlin/{pkg}/ui/screens/DetailScreen.kt"
+        ],
+        "screens": ["Detail"],
+        "koinBindings": [],
+        "homeButtons": ["Go to Detail"]
+      }
+    }
+  },
+  "theme": {
+    "expressiveMotion": false,
+    "seedColor": "#6750A4",
+    "advancedSeeds": {
+      "secondary": null,
+      "tertiary": null
+    },
+    "fonts": {
+      "displayHeadline": null,
+      "body": null,
+      "labelTitle": null
+    }
+  }
+}
