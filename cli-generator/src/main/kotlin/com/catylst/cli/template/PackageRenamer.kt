@@ -8,7 +8,7 @@ import java.nio.file.StandardCopyOption
 object PackageRenamer {
 
     private val TEXT_EXTENSIONS = setOf(
-        "kt", "kts", "xml", "plist", "xcconfig", "swift", "properties", "md", "sh", "json", "gradle"
+        "kt", "kts", "xml", "plist", "pbxproj", "xcconfig", "swift", "properties", "md", "sh", "json", "gradle"
     )
 
     fun rename(projectDir: File, config: GeneratorConfig) {

@@ -12,7 +12,8 @@ object ThemeGenerator {
         projectDir: File,
         packageName: String,
         seedColorHex: String,
-        expressiveMotion: Boolean = false
+        expressiveMotion: Boolean = false,
+        fonts: Map<String, java.io.File?> = emptyMap()
     ) {
         println("🎨 Generating theme with seed color: $seedColorHex")
 
@@ -32,11 +33,14 @@ object ThemeGenerator {
         // Write Color.kt
         writeColorKt(projectDir, packageName, lightColors, darkColors)
 
+        // Copy fonts and collect resource IDs
+        val fontIds = FontCopier.copy(projectDir, fonts)
+
         // Write Theme.kt
         writeThemeKt(projectDir, packageName, expressiveMotion)
 
-        // Write Typography.kt
-        writeTypographyKt(projectDir, packageName)
+        // Write Typography.kt (with custom fonts if provided)
+        writeTypographyKt(projectDir, packageName, fontIds)
 
         // Update App.kt to use AppTheme
         updateAppKt(projectDir, packageName)
@@ -168,7 +172,7 @@ $motionLine
         println("   Written: ${file.relativeTo(projectDir)}")
     }
 
-    private fun writeTypographyKt(projectDir: File, packageName: String) {
+    private fun writeTypographyKt(projectDir: File, packageName: String, fontIds: Map<String, String> = emptyMap()) {
         val themeDir = findOrCreateThemeDir(projectDir, packageName)
         val file = File(themeDir, "Typography.kt")
 
@@ -210,9 +214,4 @@ val AppTypography = Typography()
         return themeDir
     }
 
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
-    }
 }

@@ -7,43 +7,64 @@ import java.io.File
 object AiProviderSelector {
 
     fun apply(projectDir: File, config: GeneratorConfig) {
-        if (config.aiProvider == AiProvider.NONE) return
+        val allProviders    = listOf("ClaudeProvider", "GroqProvider", "GeminiProvider")
+        val allApiKeyFields = listOf("CLAUDE_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY")
 
-        val appModule = findFile(projectDir, "AppModule.kt") ?: return
-        var content = appModule.readText()
+        if (config.aiProvider == AiProvider.NONE) {
+            // AI feature was deselected — strip all three BuildConfig fields.
+            removeApiKeyFields(projectDir, allApiKeyFields)
+            return
+        }
 
-        val providerClass = when (config.aiProvider) {
+        // Primary provider drives the AppModule.kt binding
+        val primaryClass = when (config.aiProvider) {
             AiProvider.CLAUDE -> "ClaudeProvider"
-            AiProvider.GROQ -> "GroqProvider"
+            AiProvider.GROQ   -> "GroqProvider"
             AiProvider.GEMINI -> "GeminiProvider"
-            AiProvider.NONE -> return
+            AiProvider.NONE   -> return
         }
-
-        val configField = when (config.aiProvider) {
+        val primaryConfigField = when (config.aiProvider) {
             AiProvider.CLAUDE -> "AppConfig.claudeApiKey"
-            AiProvider.GROQ -> "AppConfig.groqApiKey"
+            AiProvider.GROQ   -> "AppConfig.groqApiKey"
             AiProvider.GEMINI -> "AppConfig.geminiApiKey"
-            AiProvider.NONE -> return
+            AiProvider.NONE   -> return
         }
 
-        // Replace the active provider line
-        val providerRegex =
-            """single<AiProvider>\s*\{\s*(ClaudeProvider|GroqProvider|GeminiProvider)\(get\(\),\s*[^)]+\)\s*\}"""
-                .toRegex()
-        content = providerRegex.replace(content, "single<AiProvider> { $providerClass(get(), $configField) }")
+        // All provider class names that should be kept
+        val keepProviders = config.aiProviders.map { provider ->
+            when (provider) {
+                AiProvider.CLAUDE -> "ClaudeProvider"
+                AiProvider.GROQ   -> "GroqProvider"
+                AiProvider.GEMINI -> "GeminiProvider"
+                AiProvider.NONE   -> null
+            }
+        }.filterNotNull().toSet()
 
-        // Remove unused provider imports
-        val allProviders = listOf("ClaudeProvider", "GroqProvider", "GeminiProvider")
-        val unusedProviders = allProviders.filter { it != providerClass }
-        for (unused in unusedProviders) {
-            content = content.replaceLineContaining("import .*$unused".toRegex())
+        val unusedProviders = allProviders.filter { it !in keepProviders }
+
+        // 1. Swap the active provider binding in AppModule.kt to the primary provider
+        val appModule = findFile(projectDir, "AppModule.kt")
+        if (appModule != null) {
+            var content = appModule.readText()
+            val providerRegex =
+                """single<AiProvider>\s*\{\s*(ClaudeProvider|GroqProvider|GeminiProvider)\(get\(\),\s*[^)]+\)\s*\}"""
+                    .toRegex()
+            content = providerRegex.replace(content, "single<AiProvider> { $primaryClass(get(), $primaryConfigField) }")
+            for (unused in unusedProviders) {
+                content = content.replaceLineContaining("import .*$unused".toRegex())
+            }
+            appModule.writeText(content)
+            println("   Set AI provider: $primaryClass (active)")
+            if (keepProviders.size > 1) {
+                println("   Kept additional providers: ${(keepProviders - primaryClass).joinToString(", ")}")
+            }
+        } else {
+            println("   ⚠️  AppModule.kt not found — skipping provider binding swap")
         }
 
-        appModule.writeText(content)
-
-        // Delete unused provider files
-        val providersDir = findFile(projectDir, "providers")?.parentFile
-        if (providersDir != null && providersDir.name == "ai") {
+        // 2. Delete provider .kt files that were NOT selected
+        val providersDir = findDir(projectDir, "providers")
+        if (providersDir != null) {
             for (unused in unusedProviders) {
                 val file = File(providersDir, "$unused.kt")
                 if (file.exists()) {
@@ -51,32 +72,29 @@ object AiProviderSelector {
                     println("   Deleted unused provider: ${file.name}")
                 }
             }
+        } else {
+            println("   ⚠️  providers/ directory not found under ${projectDir.absolutePath}")
         }
 
-        // Remove unused BuildConfig fields from androidApp/build.gradle.kts
-        val androidBuildFile = File(projectDir, "androidApp/build.gradle.kts")
-        if (androidBuildFile.exists()) {
-            var androidContent = androidBuildFile.readText()
-            val unusedFields = when (config.aiProvider) {
-                AiProvider.CLAUDE -> listOf("GROQ_API_KEY", "GEMINI_API_KEY")
-                AiProvider.GROQ -> listOf("CLAUDE_API_KEY", "GEMINI_API_KEY")
-                AiProvider.GEMINI -> listOf("CLAUDE_API_KEY", "GROQ_API_KEY")
-                AiProvider.NONE -> listOf("CLAUDE_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY")
-            }
-            for (field in unusedFields) {
-                androidContent = androidContent.replaceLineContaining("buildConfigField.*$field".toRegex())
-            }
-            androidBuildFile.writeText(androidContent)
+        // 3. Strip BuildConfig fields for providers that were NOT selected
+        val unusedFields = allApiKeyFields.filter { field ->
+            unusedProviders.any { provider -> field.contains(provider.removeSuffix("Provider").uppercase()) }
         }
+        removeApiKeyFields(projectDir, unusedFields)
+    }
+
+    private fun removeApiKeyFields(projectDir: File, fields: List<String>) {
+        val androidBuildFile = File(projectDir, "androidApp/build.gradle.kts")
+        if (!androidBuildFile.exists()) return
+        var content = androidBuildFile.readText()
+        for (field in fields) {
+            content = content.replaceLineContaining("buildConfigField.*$field".toRegex())
+        }
+        androidBuildFile.writeText(content)
     }
 
     private fun String.replaceLineContaining(regex: Regex): String {
         return this.lines().filterNot { it.matches(regex) || regex.containsMatchIn(it) }.joinToString("\n")
     }
 
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
-    }
 }

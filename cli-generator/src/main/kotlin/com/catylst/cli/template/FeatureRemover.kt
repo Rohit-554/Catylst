@@ -91,6 +91,24 @@ object FeatureRemover {
             // 13. Remove settings includes
             removeSettingsIncludes(projectDir, feature.settingsInclude)
         }
+
+        // After all features processed, delete any directories that are now empty
+        pruneEmptyDirs(projectDir)
+    }
+
+    /**
+     * Walks the directory tree bottom-up and deletes any directory that contains
+     * no files (recursively). Skips the project root itself.
+     */
+    private fun pruneEmptyDirs(root: File) {
+        root.walkBottomUp()
+            .filter { it.isDirectory && it != root }
+            .forEach { dir ->
+                // A directory is "empty" if it has no files anywhere inside it
+                if (dir.exists() && dir.walkTopDown().none { it.isFile }) {
+                    dir.deleteRecursively()
+                }
+            }
     }
 
     private fun removeKoinBindings(projectDir: File, config: GeneratorConfig, bindings: List<String>) {
@@ -225,108 +243,6 @@ object FeatureRemover {
         // Remove orphaned AI comment block
         newContent = newContent.replace(Regex("/\\*.*?AI PROVIDER.*?\\*/\\s*\\n?", RegexOption.DOT_MATCHES_ALL), "")
         appModule.writeText(newContent)
-    }
-
-    private fun removeScreens(projectDir: File, config: GeneratorConfig, screens: List<String>) {
-        if (screens.isEmpty()) return
-        val screenFile = findFile(projectDir, "Screen.kt") ?: return
-        var content = screenFile.readText()
-        val lines = content.lines().toMutableList()
-        val toRemove = mutableSetOf<Int>()
-
-        for (i in lines.indices) {
-            val line = lines[i]
-            for (screen in screens) {
-                if (line.contains("data object $screen") || line.contains("data class $screen")) {
-                    toRemove.add(i)
-                }
-            }
-        }
-
-        val result = lines.filterIndexed { i, _ -> i !in toRemove }
-        screenFile.writeText(result.joinToString("\n"))
-    }
-
-    private fun removeNavigationWiring(projectDir: File, config: GeneratorConfig, screens: List<String>) {
-        if (screens.isEmpty()) return
-        val navFile = findFile(projectDir, "AppNavigation.kt") ?: return
-        var content = navFile.readText()
-        val lines = content.lines().toMutableList()
-        val toRemove = mutableSetOf<Int>()
-
-        for (i in lines.indices) {
-            val line = lines[i]
-            for (screen in screens) {
-                if (line.contains("subclass(Screen\\.$screen::class)".toRegex()) ||
-                    line.contains("is Screen\\.$screen ->".toRegex()) ||
-                    line.contains(Regex("onNavigateTo${Regex.escape(screen)}")) ||
-                    line.contains(Regex("${Regex.escape(screen)}Screen\\(")) ||
-                    line.contains(Regex("import .*${Regex.escape(screen)}Screen"))
-                ) {
-                    toRemove.add(i)
-                }
-            }
-        }
-
-        val result = lines.filterIndexed { i, _ -> i !in toRemove }
-        navFile.writeText(result.joinToString("\n"))
-    }
-
-    private fun removeHomeButtons(projectDir: File, config: GeneratorConfig, feature: FeatureDef) {
-        val homeScreen = findFile(projectDir, "HomeScreen.kt") ?: return
-        var content = homeScreen.readText()
-        val lines = content.lines().toMutableList()
-        val toRemove = mutableSetOf<Int>()
-
-        // Remove lambda params for navigation
-        for (screen in feature.screens) {
-            val paramName = "onNavigateTo$screen"
-            for (i in lines.indices) {
-                if (lines[i].contains(paramName)) {
-                    toRemove.add(i)
-                }
-            }
-        }
-
-        // Remove OutlinedButton blocks for demo screens
-        for (i in lines.indices) {
-            val line = lines[i]
-            for (screen in feature.screens) {
-                val buttonText = when (screen) {
-                    "Detail" -> "Go to Detail"
-                    "Permissions" -> "Permissions Demo"
-                    "Notifications" -> "Notifications Demo"
-                    "Preferences" -> "Preferences Demo"
-                    "AiDemo" -> "AI Demo"
-                    else -> screen
-                }
-                if (line.contains(buttonText)) {
-                    // Find the start of the OutlinedButton block (up to 5 lines back)
-                    for (j in maxOf(0, i - 5)..i) {
-                        if (lines[j].contains("OutlinedButton")) {
-                            // Mark from j to the closing brace
-                            var braceCount = 0
-                            var foundOpen = false
-                            for (k in j until lines.size) {
-                                toRemove.add(k)
-                                if (lines[k].contains("{")) {
-                                    braceCount += lines[k].count { it == '{' }
-                                    foundOpen = true
-                                }
-                                if (lines[k].contains("}")) {
-                                    braceCount -= lines[k].count { it == '}' }
-                                }
-                                if (foundOpen && braceCount <= 0) break
-                            }
-                            break
-                        }
-                    }
-                }
-            }
-        }
-
-        val result = lines.filterIndexed { i, _ -> i !in toRemove }
-        homeScreen.writeText(result.joinToString("\n"))
     }
 
     private fun removeGradleDeps(projectDir: File, deps: List<String>) {
@@ -481,9 +397,4 @@ object FeatureRemover {
         settingsFile.writeText(result.joinToString("\n"))
     }
 
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
-    }
 }

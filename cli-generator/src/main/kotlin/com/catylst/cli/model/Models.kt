@@ -27,7 +27,16 @@ data class FeatureDef(
     val screens: List<String>,
     val buildConfigFields: List<String>,
     val iosInfoPlistKeys: List<String>,
-    val settingsInclude: List<String> = emptyList()
+    val settingsInclude: List<String> = emptyList(),
+    val permissionTypes: List<PermissionTypeDef> = emptyList()
+)
+
+@Serializable
+data class PermissionTypeDef(
+    val id: String,           // matches Permission enum name: CAMERA, LOCATION, etc.
+    val label: String,
+    val iosInfoPlistKey: String?,
+    val locationDelegate: Boolean  // true = LocationPermissionDelegate.kt is needed
 )
 
 @Serializable
@@ -77,18 +86,48 @@ enum class AiProvider {
     CLAUDE, GROQ, GEMINI, NONE
 }
 
+enum class SkillSource {
+    LOCAL_KMP,      // .claude/skills/kmp-*/  in template
+    LOCAL_TOOL,     // .claude/skills/<id>/   in template (clean-code, figma-mcp)
+    LOCAL_OPSX,     // .claude/commands/opsx/ in template
+    REMOTE          // downloaded from GitHub at generation time
+}
+
+data class SkillEntry(
+    val id: String,
+    val label: String,
+    val description: String,
+    val category: String,   // "kmp" | "workflow" | "quality" | "design" | "community"
+    val source: SkillSource,
+    /** Path relative to templateDir used for LOCAL_* sources (e.g. ".claude/skills/kmp-add-feature") */
+    val localRelativePath: String? = null,
+    /** Raw download URL — only for REMOTE source */
+    val skillMdUrl: String = "",
+    /** GitHub API URL for discovering assets/references — only for REMOTE source */
+    val contentsApiUrl: String? = null
+)
+
 data class GeneratorConfig(
     val packageName: String,
     val appName: String,
     val projectName: String,
     val features: Set<String>,
     val sampleCode: Boolean,
+    /** Primary (first) AI provider — used for AppModule.kt binding. */
     val aiProvider: AiProvider,
+    /** All selected AI providers — determines which provider files are kept. */
+    val aiProviders: Set<AiProvider> = setOf(aiProvider).filter { it != AiProvider.NONE }.toSet(),
     val includeAndroid: Boolean = true,
     val includeIos: Boolean = true,
     val includeDesktop: Boolean = true,
     val themeSeedColor: String? = null,
     val themeExpressive: Boolean = false,
+    /** Font files keyed by slot: "displayHeadline", "body", "labelTitle" */
+    val themeFonts: Map<String, java.io.File?> = emptyMap(),
+    /** Subset of permission IDs to keep (null = keep all). Only used when "permissions" feature is selected. */
+    val selectedPermissions: Set<String>? = null,
+    /** AI agent skills to install into .skills/ in the generated project. */
+    val selectedSkills: List<SkillEntry> = emptyList(),
     val outputDir: java.io.File
 ) {
     val packagePath: String get() = packageName.replace(".", "/")

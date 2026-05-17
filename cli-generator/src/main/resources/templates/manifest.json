@@ -50,7 +50,7 @@
     {
       "id": "permissions",
       "name": "Runtime Permissions",
-      "description": "Camera, Location, Notifications permission handling",
+      "description": "You can select specific permissions in the next step",
       "default": true,
       "requires": [],
       "files": [
@@ -77,6 +77,38 @@
         "NSLocationWhenInUseUsageDescription",
         "NSMicrophoneUsageDescription",
         "NSPhotoLibraryUsageDescription"
+      ],
+      "permissionTypes": [
+        {
+          "id": "CAMERA",
+          "label": "Camera",
+          "iosInfoPlistKey": "NSCameraUsageDescription",
+          "locationDelegate": false
+        },
+        {
+          "id": "LOCATION",
+          "label": "Location",
+          "iosInfoPlistKey": "NSLocationWhenInUseUsageDescription",
+          "locationDelegate": true
+        },
+        {
+          "id": "NOTIFICATIONS",
+          "label": "Notifications",
+          "iosInfoPlistKey": null,
+          "locationDelegate": false
+        },
+        {
+          "id": "RECORD_AUDIO",
+          "label": "Microphone / Record Audio",
+          "iosInfoPlistKey": "NSMicrophoneUsageDescription",
+          "locationDelegate": false
+        },
+        {
+          "id": "STORAGE",
+          "label": "Storage",
+          "iosInfoPlistKey": "NSPhotoLibraryUsageDescription",
+          "locationDelegate": false
+        }
       ]
     },
     {
@@ -169,6 +201,24 @@
       "buildConfigFields": [],
       "iosInfoPlistKeys": [],
       "settingsInclude": [":server"]
+    },
+    {
+      "id": "agent-skills",
+      "name": "AI Agent Skills",
+      "description": "SKILL.md files that teach your AI assistant Kotlin/Android tasks",
+      "default": false,
+      "requires": [],
+      "files": [],
+      "gradleDeps": [],
+      "kspProcessors": [],
+      "tomlVersionKeys": [],
+      "tomlPluginKeys": [],
+      "koinBindings": [],
+      "platformBindings": {},
+      "screens": [],
+      "buildConfigFields": [],
+      "iosInfoPlistKeys": [],
+      "settingsInclude": []
     }
   ],
   "sampleCode": {

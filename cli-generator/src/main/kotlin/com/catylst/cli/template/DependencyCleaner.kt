@@ -30,32 +30,41 @@ object DependencyCleaner {
         val toRemove = mutableSetOf<Int>()
 
         for (i in lines.indices) {
-            val line = lines[i]
+            val trimmed = lines[i].trim()
 
-            // Remove version entries
+            // Remove version entries: key = "x.y.z" or key = { ... }
             for (key in versionKeys) {
-                if (line.trim().startsWith("$key ") || line.trim().startsWith("$key=")) {
+                val keyPattern = Regex("""^${Regex.escape(key)}\s*[=]""")
+                if (keyPattern.containsMatchIn(trimmed)) {
                     toRemove.add(i)
                 }
             }
 
-            // Remove plugin entries
+            // Remove plugin entries: key = { id = "...", ... }
             for (key in pluginKeys) {
-                if (line.trim().startsWith(key) && line.contains("= { id =")) {
+                val keyPattern = Regex("""^${Regex.escape(key)}\s*[=]""")
+                if (keyPattern.containsMatchIn(trimmed)) {
                     toRemove.add(i)
                 }
             }
 
-            // Remove library entries that match removed deps OR reference removed versions
+            // Remove library entries that match removed dep names
+            // Handles both: dep-name = { module = "..." } and dep-name = { group = "...", name = "..." }
             for (dep in gradleDeps) {
-                if (line.trim().startsWith(dep) && line.contains("= { module =")) {
+                val libKey = dep.replace("-", ".").replace("_", ".")
+                val altKey = dep // original kebab form
+                val keyPattern = Regex("""^(${Regex.escape(libKey)}|${Regex.escape(altKey)})\s*[=]""")
+                if (keyPattern.containsMatchIn(trimmed) &&
+                    (trimmed.contains("module =") || trimmed.contains("group =") || trimmed.contains("= \""))) {
                     toRemove.add(i)
                 }
             }
 
-            // Remove library entries that reference removed version keys
+            // Remove any library entry that references a removed version key
+            // Handles: version.ref = "key" and version = { ref = "key" }
             for (key in versionKeys) {
-                if (line.contains("version.ref = \"$key\"")) {
+                if (lines[i].contains("""version.ref = "$key"""") ||
+                    lines[i].contains("""version = { ref = "$key"""")) {
                     toRemove.add(i)
                 }
             }

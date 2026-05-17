@@ -12,7 +12,9 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.ajalt.clikt:clikt:4.4.0")
+    implementation("com.github.ajalt.clikt:clikt:5.0.3")
+    implementation("org.jline:jline:3.26.3")
+    implementation("com.github.ajalt.mordant:mordant:3.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("com.materialkolor:material-color-utilities:3.0.0-beta01")
 

@@ -4,21 +4,47 @@ import java.io.File
 
 object HomeViewModelEditor {
 
-    fun regenerate(projectDir: File, packageName: String, hasRoom: Boolean, hasKtor: Boolean) {
+    fun regenerate(
+        projectDir: File,
+        packageName: String,
+        hasRoom: Boolean,
+        hasKtor: Boolean,
+        selectedFeatures: Set<String> = emptySet()
+    ) {
         val vmFile = findFile(projectDir, "HomeViewModel.kt") ?: return
 
-        val dbImport = if (hasRoom) "import ${packageName}.data.local.AppDatabase\nimport ${packageName}.data.local.SampleEntity" else ""
-        val dbParam = if (hasRoom) "private val database: AppDatabase? = null" else ""
-        val dbParamComma = if (hasRoom && hasKtor) "," else ""
-        val apiParam = if (hasKtor) "private val apiService: ApiService? = null" else ""
-        val apiImport = if (hasKtor) "import ${packageName}.network.ApiService" else ""
+        // Build imports — only include what's needed
+        val imports = buildList {
+            if (hasKtor) add("import ${packageName}.network.ApiService")
+            if (hasRoom) {
+                add("import ${packageName}.data.local.AppDatabase")
+                add("import ${packageName}.data.local.SampleEntity")
+            }
+        }.joinToString("\n")
 
-        val constructorParams = when {
-            hasKtor && hasRoom -> "(\n    $apiParam$dbParamComma\n    $dbParam\n)"
-            hasKtor -> "(\n    $apiParam\n)"
-            hasRoom -> "(\n    $dbParam\n)"
-            else -> "()"
+        // Build constructor params without leading/trailing commas
+        val params = buildList {
+            if (hasKtor) add("    private val apiService: ApiService? = null")
+            if (hasRoom) add("    private val database: AppDatabase? = null")
         }
+        val constructorParams = when {
+            params.isEmpty() -> "()"
+            else -> "(\n${params.joinToString(",\n")}\n)"
+        }
+
+        // Build feature list from actual selected features
+        val featureItems = buildList {
+            add("\"Compose Multiplatform\"")
+            add("\"Koin DI\"")
+            add("\"Navigation3\"")
+            if ("ktor" in selectedFeatures) add("\"Ktor Networking\"")
+            if ("room" in selectedFeatures) add("\"Room 3.0\"")
+            if ("preferences" in selectedFeatures) add("\"Multiplatform Preferences\"")
+            if ("notifications" in selectedFeatures) add("\"Push Notifications\"")
+            if ("permissions" in selectedFeatures) add("\"Runtime Permissions\"")
+            if ("ai" in selectedFeatures) add("\"AI Integration\"")
+            if ("server" in selectedFeatures) add("\"Ktor Server\"")
+        }.joinToString(",\n                    ")
 
         val addSampleFunction = if (hasRoom) {
             """
@@ -39,8 +65,7 @@ object HomeViewModelEditor {
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-$apiImport
-$dbImport
+$imports
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,13 +85,7 @@ class HomeViewModel$constructorParams : ViewModel() {
             _state.value = HomeUiState.Success(
                 message = "Welcome to ${packageName.substringAfterLast(".")}!",
                 items = listOf(
-                    "KMP Starter Template",
-                    "AGP 9 + Kotlin 2.3",
-                    "Compose Multiplatform",
-                    "Room 3.0",
-                    "Koin DI",
-                    "Ktor Networking",
-                    "Navigation3"
+                    $featureItems
                 )
             )
         }
@@ -85,11 +104,5 @@ sealed interface HomeUiState {
 """.trimIndent()
 
         vmFile.writeText(content)
-    }
-
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
     }
 }

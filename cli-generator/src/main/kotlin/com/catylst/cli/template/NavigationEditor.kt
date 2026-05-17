@@ -330,9 +330,4 @@ $buttons
         homeScreenFile.writeText(content)
     }
 
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
-    }
 }

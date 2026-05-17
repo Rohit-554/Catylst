@@ -46,6 +46,19 @@ object SampleCodeManager {
         if (screensToRemove.isNotEmpty()) {
             NavigationEditor.removeScreens(projectDir, screensToRemove)
         }
+
+        // Remove any directories that became empty after sample file deletion
+        pruneEmptyDirs(projectDir)
+    }
+
+    private fun pruneEmptyDirs(root: File) {
+        root.walkBottomUp()
+            .filter { it.isDirectory && it != root }
+            .forEach { dir ->
+                if (dir.exists() && dir.walkTopDown().none { it.isFile }) {
+                    dir.deleteRecursively()
+                }
+            }
     }
 
     private fun removeKoinBindings(projectDir: File, bindings: List<String>) {
@@ -69,11 +82,5 @@ object SampleCodeManager {
         }
 
         appModule.writeText(lines.filterIndexed { i, _ -> i !in toRemove }.joinToString("\n"))
-    }
-
-    private fun findFile(projectDir: File, name: String): File? {
-        return projectDir.walkTopDown()
-            .filter { it.isFile && it.name == name }
-            .firstOrNull()
     }
 }

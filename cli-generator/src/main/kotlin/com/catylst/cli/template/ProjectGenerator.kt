@@ -4,6 +4,7 @@ import com.catylst.cli.model.FeatureDef
 import com.catylst.cli.model.FeatureManifest
 import com.catylst.cli.model.GeneratorConfig
 import com.catylst.cli.model.loadManifest
+import com.catylst.cli.skills.SkillsInstaller
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -51,18 +52,25 @@ object ProjectGenerator {
             projectDir,
             config.packageName,
             hasRoom = "room" in config.features,
-            hasKtor = "ktor" in config.features
+            hasKtor = "ktor" in config.features,
+            selectedFeatures = config.features
         )
 
         // Step 5: Clean dependencies in TOML
         println("🧹 Cleaning dependencies...")
         DependencyCleaner.clean(projectDir, config, manifest.features)
 
-        // Step 6: Apply AI provider selection
-        if (config.aiProvider != com.catylst.cli.model.AiProvider.NONE) {
-            println("🤖 Setting AI provider to ${config.aiProvider}...")
-            AiProviderSelector.apply(projectDir, config)
+        // Step 5b: Strip unused individual permissions (if permissions feature selected + subset chosen)
+        if ("permissions" in config.features && config.selectedPermissions != null) {
+            val permissionFeature = manifest.features.first { it.id == "permissions" }
+            if (permissionFeature.permissionTypes.isNotEmpty()) {
+                PermissionStripper.apply(projectDir, permissionFeature.permissionTypes, config.selectedPermissions)
+            }
         }
+
+        // Step 6: Apply AI provider selection (always called — handles NONE by stripping all API key fields)
+        println("🤖 Applying AI provider: ${config.aiProvider}...")
+        AiProviderSelector.apply(projectDir, config)
         MainActivityEditor.apply(projectDir, config)
 
         // Step 7: Apply sample code selection
@@ -78,12 +86,19 @@ object ProjectGenerator {
                 projectDir,
                 config.packageName,
                 config.themeSeedColor,
-                config.themeExpressive
+                config.themeExpressive,
+                config.themeFonts
             )
         }
 
         // Step 9: Clean up project (remove .git, docs, scripts, etc.)
         ProjectCleaner.clean(projectDir, config)
+
+        // Step 10: Install selected skills (including KMP skills if user opted in)
+        if (config.selectedSkills.isNotEmpty()) {
+            println("📥 Installing ${config.selectedSkills.size} skill(s)...")
+            SkillsInstaller.install(projectDir, templateDir, config.selectedSkills)
+        }
 
         println("")
         println("✅ Project generated successfully at: ${projectDir.absolutePath}")
@@ -93,12 +108,13 @@ object ProjectGenerator {
         println("  ./gradlew :androidApp:assembleDebug")
     }
 
+    private val SKIP_COPY = setOf("cli-generator", "build", ".gradle", ".kotlin", ".git", ".idea")
+
     private fun deepCopy(source: File, destination: File) {
         if (source.isDirectory) {
             destination.mkdirs()
             source.listFiles()?.forEach { child ->
-                // Skip the cli-generator directory to avoid copying ourselves
-                if (child.name == "cli-generator") return@forEach
+                if (child.name in SKIP_COPY) return@forEach
                 deepCopy(child, File(destination, child.name))
             }
         } else {
