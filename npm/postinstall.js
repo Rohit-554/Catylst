@@ -28,11 +28,62 @@ const CATYLST_DIR = path.join(os.homedir(), ".catylst");
 const TEMPLATE_DIR = path.join(CATYLST_DIR, "template");
 const JAR_PATH = path.join(CATYLST_DIR, "catylst-cli.jar");
 
-const green = (s) => `\x1b[32m${s}\x1b[0m`;
+const green  = (s) => `\x1b[32m${s}\x1b[0m`;
 const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
-const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
-const bold = (s) => `\x1b[1m${s}\x1b[0m`;
-const dim = (s) => `\x1b[2m${s}\x1b[0m`;
+const cyan   = (s) => `\x1b[36m${s}\x1b[0m`;
+const bold   = (s) => `\x1b[1m${s}\x1b[0m`;
+const dim    = (s) => `\x1b[2m${s}\x1b[0m`;
+const purple = (s) => `\x1b[35m${s}\x1b[0m`;
+
+// ── Tips & jokes shown while cloning / downloading ───────────────────────────
+
+const MESSAGES = [
+  "tip      Room 3.1 auto-generates all your DAO queries at compile time.",
+  "tip      Navigation3 uses type-safe routes — no more string typos in nav graphs.",
+  "tip      Swap AI providers by changing one line in AppModule.kt.",
+  "tip      bloom-build helps you scaffold a full feature in seconds with Claude Code.",
+  "tip      Material 3 Expressive ships spring-based motion out of the box.",
+  "tip      Run ./gradlew :composeApp:kspAndroidMain after every Entity change.",
+  "tip      Koin multiplatform means one DI graph for Android, iOS, and Desktop.",
+  "tip      Use bloom-navigate to cleanly remove any feature you do not need.",
+  "tip      AGP 9 brings predictive back gesture support by default.",
+  "tip      commonMain code compiles to all targets — write once, ship everywhere.",
+  "joke     Why do Kotlin developers stay calm? Because they know how to handle exceptions.",
+  "joke     A null pointer walks into a bar. The bartender says: we don't serve your type here.",
+  "joke     Why did the Android developer quit? Too many fragments.",
+  "joke     Kotlin: where semicolons go to retire.",
+  "joke     iOS dev asks: what is Gradle? Android dev weeps softly.",
+  "joke     There are only 10 types of developers: those who understand binary and those who do not.",
+  "joke     A git push a day keeps the merge conflicts away. Usually.",
+  "joke     My code works. I have no idea why. Shipping it anyway.",
+];
+
+let tipTimer = null;
+let tipIndex  = 0;
+
+function startTips() {
+  // Shuffle so order is different each install
+  const msgs = [...MESSAGES].sort(() => Math.random() - 0.5);
+  tipIndex = 0;
+
+  function showNext() {
+    const msg  = msgs[tipIndex % msgs.length];
+    const kind = msg.startsWith("joke") ? purple("joke ") : cyan("tip  ");
+    const text = msg.replace(/^(tip|joke)\s+/, "");
+    process.stdout.write(`\r  ${kind}  ${dim(text)}${" ".repeat(10)}`);
+    tipIndex++;
+    tipTimer = setTimeout(showNext, 3000);
+  }
+
+  showNext();
+}
+
+function stopTips(finalLine) {
+  if (tipTimer) { clearTimeout(tipTimer); tipTimer = null; }
+  process.stdout.write(`\r${finalLine}${" ".repeat(30)}\n`);
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
 
 console.log("");
 console.log(bold("  Catylst KMP Project Generator"));
@@ -67,33 +118,33 @@ function setupTemplate() {
   const isGitRepo = fs.existsSync(path.join(TEMPLATE_DIR, ".git"));
 
   if (isGitRepo) {
-    process.stdout.write(cyan("  ↻  Updating template..."));
-    // Use spawn array form — no shell interpolation, no injection risk
+    startTips();
     const result = spawnSync("git", ["pull", "--quiet", "--rebase"], {
       cwd: TEMPLATE_DIR,
       stdio: "pipe",
     });
     if (result.status === 0) {
-      console.log("\r" + green("  ✓  Template updated    "));
+      stopTips(green("  ✓  Template updated"));
     } else {
-      console.log("\r" + yellow("  ⚠  Could not update template (offline?). Using existing."));
+      stopTips(yellow("  ⚠  Could not update template (offline?). Using existing."));
     }
   } else {
-    console.log(cyan("  ↓  Cloning template to ~/.catylst/template ..."));
+    console.log(dim("  ↓  Cloning template — hang tight...\n"));
+    startTips();
     fs.rmSync(TEMPLATE_DIR, { recursive: true, force: true });
-    // Use spawn array form — REPO_URL and TEMPLATE_DIR are never shell-interpolated
     const result = spawnSync(
       "git",
       ["clone", "--depth", "1", "--quiet", REPO_URL, TEMPLATE_DIR],
       { stdio: "pipe" }
     );
     if (result.status !== 0) {
+      stopTips("");
       const msg = result.stderr ? result.stderr.toString().trim() : "unknown error";
       console.error(yellow("  ✗  Failed to clone template. Is git installed?"));
       console.error(dim(`     ${msg}`));
       process.exit(1);
     }
-    console.log(green("  ✓  Template ready"));
+    stopTips(green("  ✓  Template ready"));
   }
 }
 
@@ -124,7 +175,8 @@ function downloadJar() {
   }
 
   return new Promise((resolve, reject) => {
-    process.stdout.write(cyan("  ↓  Downloading catylst-cli.jar ..."));
+    console.log(dim("  ↓  Downloading CLI — almost there...\n"));
+    startTips();
 
     // Write to a temp file first — atomic rename prevents race conditions
     const tmpPath = JAR_PATH + ".tmp." + process.pid;
@@ -167,18 +219,20 @@ function downloadJar() {
               }
 
               const digest = hash.digest("hex");
-              console.log("\r" + green("  ✓  CLI ready                      "));
+              stopTips(green("  ✓  CLI ready"));
               console.log(dim(`     SHA-256: ${digest}`));
               resolve();
             });
           });
 
           file.on("error", (err) => {
+            stopTips("");
             fs.unlink(tmpPath, () => {});
             reject(err);
           });
         })
         .on("error", (err) => {
+          stopTips("");
           fs.unlink(tmpPath, () => {});
           reject(err);
         });
