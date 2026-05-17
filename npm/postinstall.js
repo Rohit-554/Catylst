@@ -20,6 +20,7 @@ const TRUSTED_HOSTS = [
   "github.com",
   "objects.githubusercontent.com",
   "releases.githubusercontent.com",
+  "release-assets.githubusercontent.com",
   "codeload.github.com",
 ];
 

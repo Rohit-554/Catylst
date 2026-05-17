@@ -72,7 +72,11 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
     private val outputDir by option(
         "--output", "-o",
         help = "Output directory for generated project"
-    ).file(canBeFile = false).default(File("."))
+    ).file(canBeFile = false).default(
+        // CATYLST_USER_PWD is set by the wrapper script to the directory where
+        // the user invoked `catylst`, before the wrapper cd-s into the template.
+        File(System.getenv("CATYLST_USER_PWD") ?: ".")
+    )
 
     private val interactive by option(
         "--interactive", "-i",

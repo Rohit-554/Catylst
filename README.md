@@ -1,55 +1,70 @@
-# Catylst - Kotlin Multiplatform Starter Kit
+# Catylst
 
-![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin)
-![AGP](https://img.shields.io/badge/AGP-9.x-3DDC84?logo=android)
-![CMP](https://img.shields.io/badge/Compose%20Multiplatform-1.11-4285F4)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
+![AGP](https://img.shields.io/badge/AGP-9.0-3DDC84?style=flat-square&logo=android&logoColor=white)
+![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)
+![Room](https://img.shields.io/badge/Room-3.1-3DDC84?style=flat-square&logo=android&logoColor=white)
+![Navigation3](https://img.shields.io/badge/Navigation-3.0-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
+![Material3](https://img.shields.io/badge/Material-M3%20Expressive-F06292?style=flat-square)
+![npm](https://img.shields.io/npm/v/catylst?style=flat-square&logo=npm&color=CB3837)
+![License](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)
 
-**KMP starter kit for solo developers and small teams.** Android, iOS, Desktop from a single codebase — with working AI integration, push notifications, runtime permissions, local persistence, and modern navigation out of the box.
+Kotlin Multiplatform starter kit for Android, iOS, and Desktop. Ships with AI integration, push notifications, runtime permissions, local database, networking, and modern navigation — all pre-wired and ready to build.
 
-**Who this is for:**
-- **Beginners** learning KMP who want a *working app* they can run, read, and modify — not an empty scaffold
-- **Intermediate developers** shipping MVPs and side projects who need AI-powered features (Claude / Groq / Gemini) without wiring up providers from scratch
-- **Teams** who want the latest stable versions (Navigation3, Material3 Expressive, Room 3, Ktor 3) pre-configured and battle-tested
-
-If you need an enterprise-grade multi-module template with 30+ Gradle modules, heavy CI/CD infrastructure, and fintech-specific abstractions, check out [openMF/kmp-project-template](https://github.com/openMF/kmp-project-template) instead.
-
-**Full documentation:** [rohit-554.github.io/Catylst](https://rohit-554.github.io/Catylst/)
+**Docs:** [rohit-554.github.io/Catylst](https://rohit-554.github.io/Catylst/)
 
 ---
 
-## Quick Start
+## Who this is for
 
-Run this one-liner — it clones the repo, renames everything to your package, and leaves a ready-to-open project:
-
-```bash
-bash <(curl -sSL https://raw.githubusercontent.com/Rohit-554/Catylst/main/scripts/install.sh) com.yourname.yourapp YourApp
-```
-
-Or clone manually and run setup yourself:
-
-```bash
-git clone https://github.com/Rohit-554/Catylst.git myapp
-cd myapp
-
-# Rename the project to your package and app name (run once - then deletes itself)
-bash scripts/setup.sh com.yourname.yourapp YourApp
-```
-
-After setup: **File -> Sync Project with Gradle Files** in Android Studio, then build.
-
-> The script replaces all `io.jadu.catylst` references, renames source directories, updates the app name in manifests and resources, removes the `docs/` folder, and deletes itself.
+- Developers learning KMP who want a working app to read and modify, not an empty scaffold
+- Developers shipping MVPs who need AI features (Claude / Groq / Gemini) without wiring providers from scratch
+- Teams who want Navigation3, Material3 Expressive, Room 3.1, and Ktor 3 pre-configured
 
 ---
 
-## AI Services
+## Quick start
+
+Install the CLI and generate a project:
+
+```bash
+npm install -g catylst
+catylst --interactive
+```
+
+Or use the install script:
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/Rohit-554/Catylst/main/scripts/install.sh)
+catylst --interactive
+```
+
+---
+
+## What is included
+
+| Feature | Library |
+|---------|---------|
+| AI integration | Claude / Groq / Gemini — strategy pattern, swap in one line |
+| Push notifications | WorkManager (Android) / UNUserNotificationCenter (iOS) |
+| Runtime permissions | Camera / Location / Notifications — expect/actual |
+| Local database | Room 3.1 + KSP + SQLite bundled |
+| Preferences | multiplatform-settings |
+| HTTP client | Ktor 3 |
+| Backend | Ktor server module |
+| Navigation | Navigation3 — type-safe, no string routes |
+| Theme | Material 3 Expressive — seed color, light + dark |
+| Dependency injection | Koin multiplatform |
+
+---
+
+## AI provider setup
 
 ```bash
 cp local.properties.example local.properties
-# Add your key: claude.api.key / groq.api.key / gemini.api.key
 ```
 
-Swap provider with one line in `composeApp/src/commonMain/.../di/AppModule.kt`:
+Edit `local.properties` and add your key. Swap the active provider in `di/AppModule.kt`:
 
 ```kotlin
 single<AiProvider> { ClaudeProvider(get(), AppConfig.claudeApiKey) }
@@ -59,29 +74,27 @@ single<AiProvider> { ClaudeProvider(get(), AppConfig.claudeApiKey) }
 
 ---
 
-## Build
+## Build commands
 
-| Task | Command |
-|------|---------|
+| Target | Command |
+|--------|---------|
 | Android debug | `./gradlew :androidApp:assembleDebug` |
 | Android release | `./gradlew :androidApp:assembleRelease` |
 | iOS compile check | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` |
-| Desktop run | `./gradlew :composeApp:run` |
+| Desktop | `./gradlew :composeApp:run` |
 | Tests | `./gradlew :composeApp:test` |
-| Regen Room | `./gradlew :composeApp:kspAndroidMain` |
+| Regenerate Room | `./gradlew :composeApp:kspAndroidMain` |
 
 ---
 
-## Claude Code Skills
+## Agent skills
+
+Skills install into `.claude/skills/` of the generated project and are picked up automatically by Claude Code.
 
 | Skill | Purpose |
 |-------|---------|
-| `kmp-add-screen` | Add a screen end-to-end |
-| `kmp-add-feature` | Entity → DAO → Repository → ViewModel → Screen |
-| `kmp-ai-provider` | Swap or add an AI provider |
-| `kmp-notifications` | Add channels, schedule notifications |
-| `kmp-permissions` | Add a runtime permission |
-| `kmp-remove-feature` | Strip any built-in feature you don't need |
+| `bloom-build` | Add screens end-to-end — composable, navigation, ViewModel, Room Entity/DAO/Repository, Koin DI |
+| `bloom-navigate` | Modify the project — swap AI provider, configure notifications/permissions, remove features |
 
 ---
 

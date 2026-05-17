@@ -96,6 +96,7 @@ cat > "$WRAPPER_TMP" << EOF
 # Template: $TEMPLATE_DIR
 # JAR:      $JAR_PATH
 
+export CATYLST_USER_PWD="\$PWD"
 cd "$TEMPLATE_DIR/cli-generator" && \\
   java -jar "$JAR_PATH" "\$@"
 EOF

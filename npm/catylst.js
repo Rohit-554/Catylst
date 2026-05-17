@@ -30,6 +30,7 @@ const args = process.argv.slice(2);
 const child = spawn("java", ["-jar", JAR_PATH, ...args], {
   cwd: WORK_DIR,
   stdio: "inherit",
+  env: { ...process.env, CATYLST_USER_PWD: process.cwd() },
 });
 
 child.on("exit", (code) => process.exit(code ?? 0));
