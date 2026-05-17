@@ -58,6 +58,14 @@ if ! echo "$NEW_APP_NAME" | grep -qE '^[A-Za-z][A-Za-z0-9]*$'; then
     exit 1
 fi
 
+# ─── Escape helper ───────────────────────────────────────────────────────────
+# Escapes sed BRE/ERE metacharacters so user input is treated as a literal
+# string in replacement patterns — prevents sed /e-flag injection and other
+# metacharacter exploits.
+escape_sed() {
+    printf '%s' "$1" | sed 's/[\/&]/\\&/g'
+}
+
 # ─── Derived values ──────────────────────────────────────────────────────────
 
 # Convert package to path  (com.alice.myapp → com/alice/myapp)
@@ -79,15 +87,10 @@ echo ""
 
 echo "[1/6] Replacing package name in source files..."
 
-find . \
-    -not -path "./.git/*" \
-    -not -path "./build/*" \
-    -not -path "./.idea/*" \
-    -not -path "*/build/*" \
-    \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.plist" \
-       -o -name "*.pbxproj" -o -name "*.xcconfig" -o -name "*.swift" \) \
-    -exec sed -i '' \
-        "s|${TEMPLATE_ANDROID_PACKAGE}|${NEW_ANDROID_PACKAGE}|g" {} +
+ESC_TEMPLATE_ANDROID_PKG=$(escape_sed "$TEMPLATE_ANDROID_PACKAGE")
+ESC_NEW_ANDROID_PKG=$(escape_sed "$NEW_ANDROID_PACKAGE")
+ESC_TEMPLATE_PKG=$(escape_sed "$TEMPLATE_PACKAGE")
+ESC_NEW_PKG=$(escape_sed "$NEW_PACKAGE")
 
 find . \
     -not -path "./.git/*" \
@@ -97,11 +100,24 @@ find . \
     \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.plist" \
        -o -name "*.pbxproj" -o -name "*.xcconfig" -o -name "*.swift" \) \
     -exec sed -i '' \
-        "s|${TEMPLATE_PACKAGE}|${NEW_PACKAGE}|g" {} +
+        "s|${ESC_TEMPLATE_ANDROID_PKG}|${ESC_NEW_ANDROID_PKG}|g" {} +
+
+find . \
+    -not -path "./.git/*" \
+    -not -path "./build/*" \
+    -not -path "./.idea/*" \
+    -not -path "*/build/*" \
+    \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.plist" \
+       -o -name "*.pbxproj" -o -name "*.xcconfig" -o -name "*.swift" \) \
+    -exec sed -i '' \
+        "s|${ESC_TEMPLATE_PKG}|${ESC_NEW_PKG}|g" {} +
 
 # ─── Step 2: Replace app name in string resources, manifests, and iOS config ──
 
 echo "[2/6] Replacing app name..."
+
+ESC_TEMPLATE_APP=$(escape_sed "$TEMPLATE_APP_NAME")
+ESC_NEW_APP=$(escape_sed "$NEW_APP_NAME")
 
 find . \
     -not -path "./.git/*" \
@@ -111,14 +127,14 @@ find . \
     \( -name "strings.xml" -o -name "AndroidManifest.xml" \
        -o -name "settings.gradle.kts" -o -name "*.xcconfig" -o -name "*.pbxproj" \) \
     -exec sed -i '' \
-        "s|${TEMPLATE_APP_NAME}|${NEW_APP_NAME}|g" {} +
+        "s|${ESC_TEMPLATE_APP}|${ESC_NEW_APP}|g" {} +
 
 # ─── Step 3: Update root project name in settings.gradle.kts ─────────────────
 
 echo "[3/6] Updating settings.gradle.kts project name..."
 
 sed -i '' \
-    "s|rootProject.name = \"${TEMPLATE_APP_NAME}\"|rootProject.name = \"${NEW_APP_NAME}\"|g" \
+    "s|rootProject.name = \"${ESC_TEMPLATE_APP}\"|rootProject.name = \"${ESC_NEW_APP}\"|g" \
     settings.gradle.kts
 
 # ─── Step 4: Rename source directory trees ───────────────────────────────────
