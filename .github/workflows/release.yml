@@ -38,18 +38,20 @@ jobs:
         working-directory: cli-generator
         run: ./gradlew jar --no-daemon
 
-      - name: Read version
+      - name: Read version & rename JAR
         id: version
         working-directory: cli-generator
         run: |
           VERSION=$(grep '^version' build.gradle.kts | head -1 | sed 's/.*"\(.*\)".*/\1/')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          # Rename to a fixed name so gh release create has an exact path
+          cp build/libs/cli-generator-${VERSION}.jar build/libs/catylst-cli.jar
 
       - name: Compute SHA-256
         id: sha
         run: |
-          SHA=$(sha256sum cli-generator/build/libs/cli-generator-*.jar | awk '{print $1}')
+          SHA=$(sha256sum cli-generator/build/libs/catylst-cli.jar | awk '{print $1}')
           echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Delete existing release (if any)
@@ -64,7 +66,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${{ steps.version.outputs.tag }}" \
-            cli-generator/build/libs/cli-generator-*.jar#catylst-cli.jar \
+            cli-generator/build/libs/catylst-cli.jar \
             --title "Catylst CLI ${{ steps.version.outputs.tag }}" \
             --notes "## Install
 
