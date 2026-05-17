@@ -48,12 +48,6 @@ jobs:
           # Rename to a fixed name so gh release create has an exact path
           cp build/libs/cli-generator-${VERSION}.jar build/libs/catylst-cli.jar
 
-      - name: Compute SHA-256
-        id: sha
-        run: |
-          SHA=$(sha256sum cli-generator/build/libs/catylst-cli.jar | awk '{print $1}')
-          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
-
       - name: Delete existing release (if any)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,12 +72,6 @@ jobs:
           \`\`\`bash
           npm install -g catylst
           \`\`\`
-
-          ## SHA-256 verification
-          \`\`\`
-          ${{ steps.sha.outputs.sha256 }}  catylst-cli.jar
-          \`\`\`
-          Verify: \`sha256sum ~/.catylst/catylst-cli.jar\`
 
           ## What's changed
           ${{ github.event.head_commit.message }}"
