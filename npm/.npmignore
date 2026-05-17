@@ -1,5 +1,6 @@
-# Only ship the three files needed — nothing else from the repo
+# Only ship the files needed — nothing else from the repo
 *
 !package.json
 !postinstall.js
 !catylst.js
+!README.md
