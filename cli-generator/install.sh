@@ -28,13 +28,19 @@ else
     exit 1
 fi
 
-# Create wrapper script
-cat > "$INSTALL_DIR/catylst" << 'EOF'
+# Create wrapper script — write to temp file first, then atomically install
+# to prevent symlink attacks where a pre-placed symlink could cause the
+# heredoc to overwrite a file at the symlink's target path.
+WRAPPER_TMP=$(mktemp)
+trap 'rm -f "$WRAPPER_TMP"' EXIT
+
+cat > "$WRAPPER_TMP" << 'EOF'
 #!/bin/bash
 java -jar "$(dirname "$0")/catylst-cli.jar" "$@"
 EOF
 
-chmod +x "$INSTALL_DIR/catylst"
+rm -f "$INSTALL_DIR/catylst"
+install -m 755 "$WRAPPER_TMP" "$INSTALL_DIR/catylst"
 
 # Check if install dir is in PATH
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then

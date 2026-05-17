@@ -1,0 +1,21 @@
+{
+  "name": "catylst",
+  "version": "1.0.0",
+  "description": "Generate customized Kotlin Multiplatform projects with an interactive wizard",
+  "keywords": ["kotlin", "kmp", "android", "ios", "multiplatform", "compose", "generator"],
+  "homepage": "https://github.com/rohit-554/Catylst",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rohit-554/Catylst.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "catylst": "./catylst.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
