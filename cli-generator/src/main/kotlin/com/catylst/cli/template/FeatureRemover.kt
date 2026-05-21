@@ -63,6 +63,7 @@ object FeatureRemover {
             // 3c. Special cleanup for notifications removal
             if (feature.id == "notifications") {
                 removeNotificationsPlatformImports(projectDir)
+                removeNotificationsManifestEntries(projectDir)
             }
 
             // Navigation, Screen, and HomeScreen edits are handled holistically
@@ -375,6 +376,62 @@ object FeatureRemover {
 
         val result = lines.filterIndexed { i, _ -> i !in toRemove }
         plistFile.writeText(result.joinToString("\n"))
+    }
+
+    /**
+     * Removes WorkManager-related entries from AndroidManifest.xml when the
+     * notifications feature is not selected:
+     *  - POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM, RECEIVE_BOOT_COMPLETED permissions
+     *  - The InitializationProvider <provider> block used by WorkManager
+     */
+    private fun removeNotificationsManifestEntries(projectDir: File) {
+        val manifestFile = findFile(projectDir, "AndroidManifest.xml") ?: return
+        val lines = manifestFile.readLines().toMutableList()
+        val toRemove = mutableSetOf<Int>()
+
+        val notificationPermissions = listOf(
+            "android.permission.POST_NOTIFICATIONS",
+            "android.permission.SCHEDULE_EXACT_ALARM",
+            "android.permission.RECEIVE_BOOT_COMPLETED"
+        )
+
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i]
+
+            // Remove notification-related <uses-permission> tags
+            if (line.contains("<uses-permission") && notificationPermissions.any { line.contains(it) }) {
+                toRemove.add(i)
+                var j = i
+                while (j < lines.size && !lines[j].trimEnd().endsWith("/>")) {
+                    toRemove.add(j)
+                    j++
+                }
+                if (j < lines.size) toRemove.add(j)
+                i = j + 1
+                continue
+            }
+
+            // Remove WorkManager InitializationProvider block
+            if (line.contains("InitializationProvider")) {
+                // Find opening <provider tag (may be on a previous line)
+                var start = i
+                while (start > 0 && !lines[start].trimStart().startsWith("<provider")) start--
+                // Find closing </provider>
+                var end = i
+                while (end < lines.size && !lines[end].contains("</provider>")) end++
+                for (k in start..end) toRemove.add(k)
+                i = end + 1
+                continue
+            }
+
+            i++
+        }
+
+        if (toRemove.isNotEmpty()) {
+            manifestFile.writeText(lines.filterIndexed { idx, _ -> idx !in toRemove }.joinToString("\n"))
+            println("   Stripped AndroidManifest.xml WorkManager/notification entries")
+        }
     }
 
     private fun removeSettingsIncludes(projectDir: File, includes: List<String>) {

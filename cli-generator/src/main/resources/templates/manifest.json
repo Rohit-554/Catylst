@@ -177,7 +177,7 @@
       ],
       "kspProcessors": [],
       "tomlVersionKeys": ["ktor"],
-      "tomlPluginKeys": [],
+      "tomlPluginKeys": ["kotlinSerialization"],
       "koinBindings": ["HttpClient", "ApiService"],
       "platformBindings": {},
       "screens": [],
