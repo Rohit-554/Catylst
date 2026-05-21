@@ -44,6 +44,70 @@ object PermissionStripper {
 
         // 4. Remove unused cases from Android PermissionController.toManifestString()
         stripAndroidManifestCases(projectDir, removed.map { it.id })
+
+        // 5. Remove unselected <uses-permission> tags from AndroidManifest.xml
+        stripAndroidManifestPermissions(projectDir, removed.map { it.id })
+    }
+
+    /**
+     * Strips <uses-permission> lines from AndroidManifest.xml for permissions that
+     * were not selected by the user.
+     *
+     * Mapping of permission ID → AndroidManifest permission name(s):
+     *   CAMERA        → android.permission.CAMERA
+     *   LOCATION      → android.permission.ACCESS_FINE_LOCATION
+     *   RECORD_AUDIO  → android.permission.RECORD_AUDIO
+     *   STORAGE       → android.permission.READ_EXTERNAL_STORAGE
+     *   NOTIFICATIONS → android.permission.POST_NOTIFICATIONS,
+     *                   android.permission.SCHEDULE_EXACT_ALARM,
+     *                   android.permission.RECEIVE_BOOT_COMPLETED
+     */
+    fun stripAndroidManifestPermissions(projectDir: File, removedIds: List<String>) {
+        val manifestFile = findFile(projectDir, "AndroidManifest.xml") ?: return
+
+        val permissionMap = mapOf(
+            "CAMERA"       to listOf("android.permission.CAMERA"),
+            "LOCATION"     to listOf("android.permission.ACCESS_FINE_LOCATION"),
+            "RECORD_AUDIO" to listOf("android.permission.RECORD_AUDIO"),
+            "STORAGE"      to listOf("android.permission.READ_EXTERNAL_STORAGE"),
+            "NOTIFICATIONS" to listOf(
+                "android.permission.POST_NOTIFICATIONS",
+                "android.permission.SCHEDULE_EXACT_ALARM",
+                "android.permission.RECEIVE_BOOT_COMPLETED"
+            )
+        )
+
+        val permissionsToRemove = removedIds.flatMap { permissionMap[it] ?: emptyList() }
+        if (permissionsToRemove.isEmpty()) return
+
+        val lines = manifestFile.readLines().toMutableList()
+        val toRemove = mutableSetOf<Int>()
+
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i]
+            if (line.contains("<uses-permission")) {
+                val matchesRemoved = permissionsToRemove.any { line.contains(it) }
+                if (matchesRemoved) {
+                    toRemove.add(i)
+                    // Handle multi-line <uses-permission> tags (e.g. with android:maxSdkVersion on next line)
+                    var j = i
+                    while (j < lines.size && !lines[j].trimEnd().endsWith("/>")) {
+                        toRemove.add(j)
+                        j++
+                    }
+                    if (j < lines.size) toRemove.add(j) // closing />
+                    i = j + 1
+                    continue
+                }
+            }
+            i++
+        }
+
+        if (toRemove.isNotEmpty()) {
+            manifestFile.writeText(lines.filterIndexed { idx, _ -> idx !in toRemove }.joinToString("\n"))
+            println("   Stripped AndroidManifest.xml permissions: ${permissionsToRemove.joinToString(", ")}")
+        }
     }
 
     private fun stripPermissionEnum(projectDir: File, removedIds: List<String>) {
