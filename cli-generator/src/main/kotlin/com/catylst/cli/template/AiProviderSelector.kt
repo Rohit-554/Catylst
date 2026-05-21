@@ -11,12 +11,10 @@ object AiProviderSelector {
         val allApiKeyFields = listOf("CLAUDE_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY")
 
         if (config.aiProvider == AiProvider.NONE) {
-            // AI feature was deselected — strip all three BuildConfig fields.
             removeApiKeyFields(projectDir, allApiKeyFields)
             return
         }
 
-        // Primary provider drives the AppModule.kt binding
         val primaryClass = when (config.aiProvider) {
             AiProvider.CLAUDE -> "ClaudeProvider"
             AiProvider.GROQ   -> "GroqProvider"
@@ -30,7 +28,6 @@ object AiProviderSelector {
             AiProvider.NONE   -> return
         }
 
-        // All provider class names that should be kept
         val keepProviders = config.aiProviders.map { provider ->
             when (provider) {
                 AiProvider.CLAUDE -> "ClaudeProvider"
@@ -42,7 +39,6 @@ object AiProviderSelector {
 
         val unusedProviders = allProviders.filter { it !in keepProviders }
 
-        // 1. Swap the active provider binding in AppModule.kt to the primary provider
         val appModule = findFile(projectDir, "AppModule.kt")
         if (appModule != null) {
             var content = appModule.readText()
@@ -62,7 +58,6 @@ object AiProviderSelector {
             println("   ⚠️  AppModule.kt not found — skipping provider binding swap")
         }
 
-        // 2. Delete provider .kt files that were NOT selected
         val providersDir = findDir(projectDir, "providers")
         if (providersDir != null) {
             for (unused in unusedProviders) {
@@ -76,7 +71,6 @@ object AiProviderSelector {
             println("   ⚠️  providers/ directory not found under ${projectDir.absolutePath}")
         }
 
-        // 3. Strip BuildConfig fields for providers that were NOT selected
         val unusedFields = allApiKeyFields.filter { field ->
             unusedProviders.any { provider -> field.contains(provider.removeSuffix("Provider").uppercase()) }
         }

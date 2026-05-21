@@ -3,7 +3,6 @@ package com.catylst.cli
 import org.jline.terminal.TerminalBuilder
 import java.io.File
 
-// ─── ANSI ────────────────────────────────────────────────────────────────────
 private fun bold(s: String)    = "\u001B[1m$s\u001B[0m"
 private fun dim(s: String)     = "\u001B[2m$s\u001B[0m"
 private fun green(s: String)   = "\u001B[32m$s\u001B[0m"
@@ -11,7 +10,6 @@ private fun cyan(s: String)    = "\u001B[36m$s\u001B[0m"
 private fun yellow(s: String)  = "\u001B[33m$s\u001B[0m"
 private fun bgCyan(s: String)  = "\u001B[46m\u001B[30m$s\u001B[0m"
 
-// ─── Key legend ───────────────────────────────────────────────────────────────
 private fun keyHint(key: String, desc: String) = "${bold(yellow(key))} ${dim(desc)}"
 
 private val CHECKBOX_LEGEND =
@@ -29,10 +27,8 @@ private val RADIO_LEGEND =
         keyHint("Enter", "confirm")
     ).joinToString("   ")
 
-// ─── Data ────────────────────────────────────────────────────────────────────
 data class SelectOption<T>(val value: T, val label: String, val description: String = "")
 
-// ─── Section header ───────────────────────────────────────────────────────────
 fun sectionHeader(title: String, hint: String = "") {
     val width = 52
     val left  = "  \u001B[2m──\u001B[0m \u001B[1m$title\u001B[0m "
@@ -41,22 +37,14 @@ fun sectionHeader(title: String, hint: String = "") {
     println("\n$left$dashes $hintPart")
 }
 
-// ─── Arrow-key interactive checkbox select ────────────────────────────────────
 /**
- * Full interactive checkbox list driven by arrow keys:
- *   ↑ / ↓  — move cursor
- *   Space   — toggle current item
- *   Enter   — confirm selection
- *   a       — select all
- *   n       — deselect all
- *
- * Falls back to compact numbered input when stdin is not a TTY (piped/CI).
+ * Arrow-key checkbox list. ↑/↓ move, Space toggles, Enter confirms, a/n select all/none.
+ * Falls back to [compactMultiSelect] when stdin is not a TTY (piped/CI).
  */
 fun <T> interactiveCheckboxSelect(
     options: List<SelectOption<T>>,
     initial: Set<T> = emptySet()
 ): Set<T> {
-    // Non-TTY fallback (piped input, CI)
     if (System.console() == null) {
         return compactMultiSelect(options, initial)
     }
@@ -73,7 +61,6 @@ fun <T> interactiveCheckboxSelect(
     val reader = terminal.reader()
 
     try {
-        // Hide cursor
         print("\u001B[?25l")
         System.out.flush()
 
@@ -94,7 +81,6 @@ fun <T> interactiveCheckboxSelect(
         }
 
         fun moveUp(n: Int) {
-            // Move cursor up n+1 lines (options + hint line)
             print("\u001B[${n + 1}A\r")
             System.out.flush()
         }
@@ -105,25 +91,16 @@ fun <T> interactiveCheckboxSelect(
             val ch = reader.read()
 
             when (ch) {
-                // Enter
                 13, 10 -> break
-
-                // Space — toggle current
                 32 -> selected[cursor] = !selected[cursor]
-
-                // 'a' — select all
                 97 -> selected.fill(true)
-
-                // 'n' — deselect all
                 110 -> selected.fill(false)
-
-                // ESC sequence (arrow keys)
                 27 -> {
                     val next = reader.read()
-                    if (next == 91) { // '['
+                    if (next == 91) {
                         when (reader.read()) {
-                            65 -> cursor = (cursor - 1 + options.size) % options.size // ↑
-                            66 -> cursor = (cursor + 1) % options.size                 // ↓
+                            65 -> cursor = (cursor - 1 + options.size) % options.size
+                            66 -> cursor = (cursor + 1) % options.size
                         }
                     }
                 }
@@ -134,7 +111,6 @@ fun <T> interactiveCheckboxSelect(
         }
 
     } finally {
-        // Restore terminal state and show cursor
         terminal.setAttributes(savedAttrs)
         print("\u001B[?25h")
         System.out.flush()
@@ -144,10 +120,9 @@ fun <T> interactiveCheckboxSelect(
     return options.indices.filter { selected[it] }.map { options[it].value }.toSet()
 }
 
-// ─── Interactive single-select ────────────────────────────────────────────────
 /**
- * Arrow-key radio-button style single select.
- * Falls back to inlineChoice when not in a TTY.
+ * Arrow-key radio-button single select. ↑/↓ move, Enter confirms.
+ * Falls back to [inlineChoice] when not in a TTY.
  */
 fun <T> interactiveSingleSelect(
     options: List<SelectOption<T>>,
@@ -218,7 +193,6 @@ fun <T> interactiveSingleSelect(
     return options[cursor].value
 }
 
-// ─── Compact multi-select fallback (numbered table + toggle input) ─────────────────────
 /**
  * Non-interactive fallback: numbered table, user types numbers to toggle.
  * Used automatically when stdin is not a TTY.
@@ -246,7 +220,7 @@ fun <T> compactMultiSelect(
     val input = readlnOrNull()?.trim() ?: ""
 
     when {
-        input.isBlank() -> { /* keep initial */ }
+        input.isBlank() -> { }
         input.lowercase() == "all"  -> selected.fill(true)
         input.lowercase() == "none" -> selected.fill(false)
         else -> {
@@ -263,7 +237,6 @@ fun <T> compactMultiSelect(
     return options.indices.filter { selected[it] }.map { options[it].value }.toSet()
 }
 
-// ─── Compact permission selector (inline row) ─────────────────────────────────
 fun <T> inlineMultiSelect(
     options: List<SelectOption<T>>,
     initial: Set<T> = emptySet()
@@ -289,7 +262,7 @@ fun <T> inlineMultiSelect(
     val input = readlnOrNull()?.trim() ?: ""
 
     when {
-        input.isBlank() -> { /* keep initial */ }
+        input.isBlank() -> { }
         input.lowercase() == "all"  -> selected.fill(true)
         input.lowercase() == "none" -> selected.fill(false)
         else -> {
@@ -306,7 +279,6 @@ fun <T> inlineMultiSelect(
     return options.indices.filter { selected[it] }.map { options[it].value }.toSet()
 }
 
-// ─── Inline confirm (Y/n on same line) ────────────────────────────────────────
 fun confirm(prompt: String, default: Boolean = true): Boolean {
     val hint = if (default) dim("Y/n") else dim("y/N")
     print("  ${cyan("›")} $prompt ($hint): ")
@@ -318,7 +290,6 @@ fun confirm(prompt: String, default: Boolean = true): Boolean {
     }
 }
 
-// ─── Inline single-select by keyword ─────────────────────────────────────────
 fun inlineChoice(prompt: String, choices: List<String>, default: String): String {
     val opts = choices.joinToString("/")
     print("  ${cyan("›")} $prompt ($opts) ${dim("[$default]")}: ")

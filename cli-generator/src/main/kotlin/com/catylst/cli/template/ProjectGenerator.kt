@@ -9,9 +9,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-private fun manifestFeaturesToScreens(features: List<FeatureDef>): Set<String> {
-    return features.flatMap { it.screens }.toSet()
-}
+private fun screensRemovedBy(features: List<FeatureDef>): Set<String> =
+    features.flatMap { it.screens }.toSet()
 
 object ProjectGenerator {
 
@@ -24,30 +23,24 @@ object ProjectGenerator {
         println("🤖 AI Provider: ${config.aiProvider}")
         println("📂 Output: ${config.outputDir.absolutePath}")
 
-        // Step 1: Use local template (parent project directory)
         val templateDir = File("").absoluteFile.parentFile
         println("📁 Using local template: ${templateDir.absolutePath}")
 
-        // Step 2: Deep copy to output directory
         val projectDir = File(config.outputDir, config.projectName)
         if (projectDir.exists()) {
             projectDir.deleteRecursively()
         }
         deepCopy(templateDir, projectDir)
 
-        // Step 3: Rename package and app name
         println("📝 Renaming package and app...")
         PackageRenamer.rename(projectDir, config)
 
-        // Step 4: Remove unselected features
         println("🔧 Applying feature selections...")
         FeatureRemover.removeFeatures(projectDir, config, manifest.features, manifest.sampleCode)
 
-        // Step 4b: Regenerate navigation, screens, and home screen holistically
-        val allRemovedScreens = manifestFeaturesToScreens(manifest.features.filter { it.id !in config.features })
-        NavigationEditor.removeScreens(projectDir, allRemovedScreens)
+        val removedScreens = screensRemovedBy(manifest.features.filter { it.id !in config.features })
+        NavigationEditor.removeScreens(projectDir, removedScreens)
 
-        // Step 4c: Regenerate HomeViewModel based on remaining features
         HomeViewModelEditor.regenerate(
             projectDir,
             config.packageName,
@@ -56,11 +49,9 @@ object ProjectGenerator {
             selectedFeatures = config.features
         )
 
-        // Step 5: Clean dependencies in TOML
         println("🧹 Cleaning dependencies...")
         DependencyCleaner.clean(projectDir, config, manifest.features)
 
-        // Step 5b: Strip unused individual permissions (if permissions feature selected + subset chosen)
         if ("permissions" in config.features && config.selectedPermissions != null) {
             val permissionFeature = manifest.features.first { it.id == "permissions" }
             if (permissionFeature.permissionTypes.isNotEmpty()) {
@@ -68,18 +59,15 @@ object ProjectGenerator {
             }
         }
 
-        // Step 6: Apply AI provider selection (always called — handles NONE by stripping all API key fields)
         println("🤖 Applying AI provider: ${config.aiProvider}...")
         AiProviderSelector.apply(projectDir, config)
         MainActivityEditor.apply(projectDir, config)
 
-        // Step 7: Apply sample code selection
         if (!config.sampleCode) {
             println("🗑️  Removing sample code...")
             SampleCodeManager.apply(projectDir, config, manifest.features, manifest.sampleCode)
         }
 
-        // Step 8: Apply theme customization
         if (config.themeSeedColor != null) {
             println("🎨 Generating custom theme...")
             ThemeGenerator.generate(
@@ -91,10 +79,8 @@ object ProjectGenerator {
             )
         }
 
-        // Step 9: Clean up project (remove .git, docs, scripts, etc.)
         ProjectCleaner.clean(projectDir, config)
 
-        // Step 10: Install selected skills (including KMP skills if user opted in)
         if (config.selectedSkills.isNotEmpty()) {
             println("📥 Installing ${config.selectedSkills.size} skill(s)...")
             SkillsInstaller.install(projectDir, templateDir, config.selectedSkills)

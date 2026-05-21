@@ -194,7 +194,7 @@
       "gradleDeps": ["ktor-serverCore", "ktor-serverNetty", "logback"],
       "kspProcessors": [],
       "tomlVersionKeys": ["logback"],
-      "tomlPluginKeys": [],
+      "tomlPluginKeys": ["ktor"],
       "koinBindings": [],
       "platformBindings": {},
       "screens": [],

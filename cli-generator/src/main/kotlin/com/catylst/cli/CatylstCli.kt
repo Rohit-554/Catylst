@@ -137,7 +137,6 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
             echo("  ║   Catylst KMP Project Generator     ║")
             echo("  ╚══════════════════════════════════════╝\u001B[0m")
 
-            // ── SECTION 1: PROJECT ────────────────────────────────────────────
             sectionHeader("PROJECT")
 
             val pkg = if (packageName != null) {
@@ -161,7 +160,6 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
             }
             val proj = projectName ?: app
 
-            // ── SECTION 2: FEATURES ───────────────────────────────────────────
             sectionHeader("FEATURES", "Enter = defaults")
 
             val defaultSelected = manifest.features.filter { it.default }.map { it.id }.toSet()
@@ -175,14 +173,12 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
 
             val rawSelected = forcedByFlag ?: interactiveCheckboxSelect(featureOptions, defaultSelected)
 
-            // Resolve dependencies
             val resolvedFeatures = resolveDependencies(rawSelected, manifest.features)
             if (resolvedFeatures != rawSelected) {
                 val added = resolvedFeatures - rawSelected
                 echo("  \u001B[33m⚠  Auto-enabled: ${added.joinToString(", ")} (required by selected features)\u001B[0m")
             }
 
-            // Permissions sub-selection (inline, still in FEATURES section)
             val selectedPermissions: Set<String>? = if ("permissions" in resolvedFeatures) {
                 val permDef = manifest.features.first { it.id == "permissions" }
                 if (permDef.permissionTypes.isNotEmpty()) {
@@ -199,7 +195,6 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
                 } else null
             } else null
 
-            // Agent-skills sub-selection (inline, still in FEATURES section)
             val selectedSkills: List<SkillEntry> = if ("agent-skills" in resolvedFeatures) {
                 echo("")
                 echo("  \u001B[33m⚡\u001B[0m \u001B[1mWhich skills to install?\u001B[0m  \u001B[2m(remote skills need internet at generation time)\u001B[0m")
@@ -220,7 +215,6 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
                 }
             } else emptyList()
 
-            // ── SECTION 3: OPTIONS ────────────────────────────────────────────
             sectionHeader("OPTIONS")
 
             val sample = if (noSampleCode) {
@@ -242,11 +236,10 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
                             SelectOption(AiProvider.GEMINI, "Gemini",  "Google Gemini"),
                         ),
                         initial = setOf(AiProvider.CLAUDE)
-                    ).ifEmpty { setOf(AiProvider.CLAUDE) } // default to Claude if none chosen
+                    ).ifEmpty { setOf(AiProvider.CLAUDE) }
                 }
             } else emptySet()
 
-            // ── SECTION 4: THEME (optional) ───────────────────────────────────
             sectionHeader("THEME", "optional")
 
             val themeSeed = if (themeColor != null) {
@@ -280,14 +273,12 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
                 fonts = emptyMap()
             }
 
-            // ── READY ─────────────────────────────────────────────────────────
             sectionHeader("READY")
             printSummary(pkg, app, resolvedFeatures, sample, ais, themeSeed, expressive, selectedSkills)
 
             if (confirm("Generate project?", default = true)) {
                 return InteractiveResult(pkg, app, proj, resolvedFeatures, sample, ais, themeSeed, expressive, fonts, selectedPermissions, selectedSkills)
             }
-            // User said N → loop back to top
             echo("")
         }
     }
