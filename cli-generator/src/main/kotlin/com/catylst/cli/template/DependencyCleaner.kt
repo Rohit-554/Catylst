@@ -32,7 +32,7 @@ object DependencyCleaner {
         for (i in lines.indices) {
             val trimmed = lines[i].trim()
 
-            // Remove version entries: key = "x.y.z" or key = { ... }
+            // Matches: key = "x.y.z" or key = { ... }
             for (key in versionKeys) {
                 val keyPattern = Regex("""^${Regex.escape(key)}\s*[=]""")
                 if (keyPattern.containsMatchIn(trimmed)) {
@@ -40,19 +40,19 @@ object DependencyCleaner {
                 }
             }
 
-            // Remove plugin entries: key = { id = "...", ... }
+            // Matches plugin entries only: key = { id = "...", version.ref = "..." }
+            // The `id =` check prevents accidentally removing a same-named version entry.
             for (key in pluginKeys) {
                 val keyPattern = Regex("""^${Regex.escape(key)}\s*[=]""")
-                if (keyPattern.containsMatchIn(trimmed)) {
+                if (keyPattern.containsMatchIn(trimmed) && trimmed.contains("id =")) {
                     toRemove.add(i)
                 }
             }
 
-            // Remove library entries that match removed dep names
-            // Handles both: dep-name = { module = "..." } and dep-name = { group = "...", name = "..." }
+            // Matches: dep-name = { module = "..." } and dep-name = { group = "...", name = "..." }
             for (dep in gradleDeps) {
                 val libKey = dep.replace("-", ".").replace("_", ".")
-                val altKey = dep // original kebab form
+                val altKey = dep
                 val keyPattern = Regex("""^(${Regex.escape(libKey)}|${Regex.escape(altKey)})\s*[=]""")
                 if (keyPattern.containsMatchIn(trimmed) &&
                     (trimmed.contains("module =") || trimmed.contains("group =") || trimmed.contains("= \""))) {
@@ -60,8 +60,7 @@ object DependencyCleaner {
                 }
             }
 
-            // Remove any library entry that references a removed version key
-            // Handles: version.ref = "key" and version = { ref = "key" }
+            // Matches: version.ref = "key" and version = { ref = "key" }
             for (key in versionKeys) {
                 if (lines[i].contains("""version.ref = "$key"""") ||
                     lines[i].contains("""version = { ref = "$key"""")) {

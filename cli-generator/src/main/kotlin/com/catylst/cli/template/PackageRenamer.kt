@@ -21,7 +21,6 @@ object PackageRenamer {
         val oldProjectName = "Catylst"
         val newProjectName = config.projectName
 
-        // 1. Replace text content in all source files
         projectDir.walkTopDown()
             .filter { it.isFile }
             .forEach { file ->
@@ -49,8 +48,6 @@ object PackageRenamer {
                 }
             }
 
-        // 2. Rename directory trees: io/jadu/catylst -> com/company/app
-        // Collect all directories that contain the old package path
         val dirsToRename = mutableListOf<Pair<File, File>>()
         projectDir.walkTopDown()
             .filter { it.isDirectory }
@@ -69,7 +66,6 @@ object PackageRenamer {
         for ((oldDir, newDir) in dirsToRename) {
             if (oldDir.exists() && oldDir != newDir) {
                 newDir.parentFile?.mkdirs()
-                // If target exists, merge contents
                 if (newDir.exists()) {
                     mergeDirectories(oldDir, newDir)
                     oldDir.deleteRecursively()
@@ -79,7 +75,6 @@ object PackageRenamer {
             }
         }
 
-        // 3. Update settings.gradle.kts rootProject.name
         val settingsFile = File(projectDir, "settings.gradle.kts")
         if (settingsFile.exists()) {
             var content = settingsFile.readText()

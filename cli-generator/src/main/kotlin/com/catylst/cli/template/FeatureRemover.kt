@@ -17,7 +17,6 @@ object FeatureRemover {
         for (feature in unselected) {
             println("🗑️  Removing feature: ${feature.name}")
 
-            // 1a. Delete core files
             for (pattern in feature.files) {
                 val resolved = pattern.replace("{pkg}", config.packagePath)
                 val target = File(projectDir, resolved)
@@ -27,7 +26,6 @@ object FeatureRemover {
                 }
             }
 
-            // 1b. Delete sample files for this feature (if feature unselected, sample code goes too)
             if (sampleCodeDef != null) {
                 val sampleDef = sampleCodeDef.perFeature[feature.id]
                 if (sampleDef != null) {
@@ -42,70 +40,45 @@ object FeatureRemover {
                 }
             }
 
-            // 2. Remove Koin bindings from AppModule.kt
             removeKoinBindings(projectDir, config, feature.koinBindings)
 
-            // 2b. Special cleanup for AI feature removal
             if (feature.id == "ai") {
                 removeAiSpecificCode(projectDir)
             }
 
-            // 3. Remove platform bindings
             for ((platform, bindings) in feature.platformBindings) {
                 removePlatformBindings(projectDir, config, platform, bindings)
             }
 
-            // 3b. Special cleanup for preferences removal
             if (feature.id == "preferences") {
                 removePreferencesPlatformImports(projectDir)
             }
 
-            // 3c. Special cleanup for notifications removal
             if (feature.id == "notifications") {
                 removeNotificationsPlatformImports(projectDir)
                 removeNotificationsManifestEntries(projectDir)
             }
 
-            // Navigation, Screen, and HomeScreen edits are handled holistically
-            // after all features are processed
-
-            // 7. Remove Gradle deps from composeApp/build.gradle.kts
             removeGradleDeps(projectDir, feature.gradleDeps)
-
-            // 8. Remove KSP processors
             removeKspProcessors(projectDir, feature.kspProcessors)
-
-            // 9. Remove plugin aliases
             removePluginAliases(projectDir, feature.tomlPluginKeys)
 
-            // 10. Remove KSP room block if room removed
             if (feature.id == "room") {
                 removeKspRoomBlock(projectDir)
             }
 
-            // 11. Remove buildConfigFields from androidApp/build.gradle.kts
             removeBuildConfigFields(projectDir, feature.buildConfigFields)
-
-            // 12. Remove Info.plist keys
             removeInfoPlistKeys(projectDir, feature.iosInfoPlistKeys)
-
-            // 13. Remove settings includes
             removeSettingsIncludes(projectDir, feature.settingsInclude)
         }
 
-        // After all features processed, delete any directories that are now empty
         pruneEmptyDirs(projectDir)
     }
 
-    /**
-     * Walks the directory tree bottom-up and deletes any directory that contains
-     * no files (recursively). Skips the project root itself.
-     */
     private fun pruneEmptyDirs(root: File) {
         root.walkBottomUp()
             .filter { it.isDirectory && it != root }
             .forEach { dir ->
-                // A directory is "empty" if it has no files anywhere inside it
                 if (dir.exists() && dir.walkTopDown().none { it.isFile }) {
                     dir.deleteRecursively()
                 }
@@ -142,16 +115,13 @@ object FeatureRemover {
         for (i in lines.indices) {
             val line = lines[i]
             for (binding in bindings) {
-                // Remove import lines
                 if (line.contains(Regex("import .*$binding"))) {
                     toRemove.add(i)
                 }
-                // Remove binding lines (and their multi-line blocks)
                 if (line.contains(Regex("single<\\s*$binding\\s*>")) ||
                     line.contains(Regex("single\\s*\\{\\s*$binding")) ||
                     line.contains(Regex("viewModel\\s*\\{\\s*$binding"))
                 ) {
-                    // Remove from this line to the end of the balanced brace block
                     var braceCount = 0
                     var foundOpen = false
                     for (k in i until lines.size) {
@@ -221,7 +191,6 @@ object FeatureRemover {
                     toRemove.add(i)
                 }
             }
-            // Remove AiViewModel binding block
             if (lines[i].contains(Regex("viewModel\\s*\\{\\s*AiViewModel"))) {
                 var braceCount = 0
                 var foundOpen = false
@@ -241,7 +210,6 @@ object FeatureRemover {
 
         val result = lines.filterIndexed { i, _ -> i !in toRemove }
         var newContent = result.joinToString("\n")
-        // Remove orphaned AI comment block
         newContent = newContent.replace(Regex("/\\*.*?AI PROVIDER.*?\\*/\\s*\\n?", RegexOption.DOT_MATCHES_ALL), "")
         appModule.writeText(newContent)
     }
@@ -255,7 +223,7 @@ object FeatureRemover {
 
         for (i in lines.indices) {
             for (dep in deps) {
-                // Convert kebab-case to camelCase/dot notation: room-runtime -> room.runtime
+                // kebab-case dep IDs are referenced as dot-notation in Gradle: room-runtime -> room.runtime
                 val libRef = dep.replace("-", ".")
                 if (lines[i].contains("implementation(libs.$libRef)")) {
                     toRemove.add(i)
@@ -291,29 +259,31 @@ object FeatureRemover {
 
     private fun removePluginAliases(projectDir: File, pluginKeys: List<String>) {
         if (pluginKeys.isEmpty()) return
-        val buildFile = File(projectDir, "composeApp/build.gradle.kts")
-        if (!buildFile.exists()) return
-        var content = buildFile.readText()
-        val lines = content.lines().toMutableList()
-        val toRemove = mutableSetOf<Int>()
-
-        for (i in lines.indices) {
-            for (key in pluginKeys) {
-                if (lines[i].contains("alias(libs.plugins.$key)")) {
-                    toRemove.add(i)
+        val buildFiles = listOf(
+            File(projectDir, "composeApp/build.gradle.kts"),
+            File(projectDir, "build.gradle.kts")
+        )
+        for (buildFile in buildFiles) {
+            if (!buildFile.exists()) continue
+            val lines = buildFile.readText().lines().toMutableList()
+            val toRemove = mutableSetOf<Int>()
+            for (i in lines.indices) {
+                for (key in pluginKeys) {
+                    if (lines[i].contains("alias(libs.plugins.$key)")) {
+                        toRemove.add(i)
+                    }
                 }
             }
+            if (toRemove.isNotEmpty()) {
+                buildFile.writeText(lines.filterIndexed { i, _ -> i !in toRemove }.joinToString("\n"))
+            }
         }
-
-        val result = lines.filterIndexed { i, _ -> i !in toRemove }
-        buildFile.writeText(result.joinToString("\n"))
     }
 
     private fun removeKspRoomBlock(projectDir: File) {
         val buildFile = File(projectDir, "composeApp/build.gradle.kts")
         if (!buildFile.exists()) return
-        var content = buildFile.readText()
-        val lines = content.lines().toMutableList()
+        val lines = buildFile.readText().lines().toMutableList()
         val toRemove = mutableSetOf<Int>()
 
         for (i in lines.indices) {
@@ -342,8 +312,7 @@ object FeatureRemover {
         if (fields.isEmpty()) return
         val buildFile = File(projectDir, "androidApp/build.gradle.kts")
         if (!buildFile.exists()) return
-        var content = buildFile.readText()
-        val lines = content.lines().toMutableList()
+        val lines = buildFile.readText().lines().toMutableList()
         val toRemove = mutableSetOf<Int>()
 
         for (i in lines.indices) {
@@ -361,8 +330,7 @@ object FeatureRemover {
     private fun removeInfoPlistKeys(projectDir: File, keys: List<String>) {
         if (keys.isEmpty()) return
         val plistFile = findFile(projectDir, "Info.plist") ?: return
-        var content = plistFile.readText()
-        val lines = content.lines().toMutableList()
+        val lines = plistFile.readText().lines().toMutableList()
         val toRemove = mutableSetOf<Int>()
 
         for (i in lines.indices) {
@@ -379,10 +347,9 @@ object FeatureRemover {
     }
 
     /**
-     * Removes WorkManager-related entries from AndroidManifest.xml when the
-     * notifications feature is not selected:
+     * Removes WorkManager-related entries from AndroidManifest.xml:
      *  - POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM, RECEIVE_BOOT_COMPLETED permissions
-     *  - The InitializationProvider <provider> block used by WorkManager
+     *  - The InitializationProvider `<provider>` block used by WorkManager
      */
     private fun removeNotificationsManifestEntries(projectDir: File) {
         val manifestFile = findFile(projectDir, "AndroidManifest.xml") ?: return
@@ -399,7 +366,6 @@ object FeatureRemover {
         while (i < lines.size) {
             val line = lines[i]
 
-            // Remove notification-related <uses-permission> tags
             if (line.contains("<uses-permission") && notificationPermissions.any { line.contains(it) }) {
                 toRemove.add(i)
                 var j = i
@@ -412,12 +378,10 @@ object FeatureRemover {
                 continue
             }
 
-            // Remove WorkManager InitializationProvider block
             if (line.contains("InitializationProvider")) {
-                // Find opening <provider tag (may be on a previous line)
+                // Find the opening <provider tag (may be on a preceding line)
                 var start = i
                 while (start > 0 && !lines[start].trimStart().startsWith("<provider")) start--
-                // Find closing </provider>
                 var end = i
                 while (end < lines.size && !lines[end].contains("</provider>")) end++
                 for (k in start..end) toRemove.add(k)
@@ -438,8 +402,7 @@ object FeatureRemover {
         if (includes.isEmpty()) return
         val settingsFile = File(projectDir, "settings.gradle.kts")
         if (!settingsFile.exists()) return
-        var content = settingsFile.readText()
-        val lines = content.lines().toMutableList()
+        val lines = settingsFile.readText().lines().toMutableList()
         val toRemove = mutableSetOf<Int>()
 
         for (i in lines.indices) {
