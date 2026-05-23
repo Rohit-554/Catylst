@@ -42,6 +42,7 @@ object PermissionStripper {
 
         stripAndroidManifestCases(projectDir, removed.map { it.id })
         stripAndroidManifestPermissions(projectDir, removed.map { it.id })
+        stripIosController(projectDir, removed.map { it.id })
     }
 
     /**
@@ -164,6 +165,69 @@ object PermissionStripper {
 
         if (toRemove.isNotEmpty()) {
             androidController.writeText(lines.filterIndexed { i, _ -> i !in toRemove }.joinToString("\n"))
+        }
+    }
+
+    private fun stripIosController(projectDir: File, removedIds: List<String>) {
+        val iosController = findFile(projectDir, "PermissionController.ios.kt") ?: return
+
+        val functionMap = mapOf(
+            "LOCATION"      to listOf("locationStatus", "requestLocation"),
+            "NOTIFICATIONS" to listOf("notificationStatus", "requestNotifications")
+        )
+        val importMap = mapOf(
+            "LOCATION"      to listOf("CoreLocation", "kCLAuthorization"),
+            "NOTIFICATIONS" to listOf("UserNotifications", "UNAuthorization", "UNUserNotification")
+        )
+
+        val functionsToRemove = removedIds.flatMap { functionMap[it] ?: emptyList() }.toSet()
+        val importFragmentsToRemove = removedIds.flatMap { importMap[it] ?: emptyList() }.toSet()
+
+        val lines = iosController.readLines()
+        val toRemove = mutableSetOf<Int>()
+
+        // Strip when-branch lines (single-line branches like `Permission.LOCATION -> locationStatus()`)
+        for (i in lines.indices) {
+            for (id in removedIds) {
+                if (lines[i].contains("Permission.$id ->")) toRemove.add(i)
+            }
+        }
+
+        // Strip unused imports
+        for (i in lines.indices) {
+            val line = lines[i]
+            if (line.startsWith("import ") && importFragmentsToRemove.any { line.contains(it) }) {
+                toRemove.add(i)
+            }
+        }
+
+        // Strip private helper functions (tracks brace depth to find the full body)
+        var i = 0
+        while (i < lines.size) {
+            val isTarget = functionsToRemove.any { lines[i].contains("fun $it(") }
+            if (isTarget) {
+                var depth = 0
+                var seenBrace = false
+                var j = i
+                while (j < lines.size) {
+                    val l = lines[j]
+                    depth += l.count { it == '{' } - l.count { it == '}' }
+                    if (l.contains('{')) seenBrace = true
+                    toRemove.add(j)
+                    if (seenBrace && depth == 0) { i = j + 1; break }
+                    j++
+                    if (j == lines.size) { i = j; break }
+                }
+                // absorb trailing blank line
+                if (i < lines.size && lines[i].isBlank()) { toRemove.add(i); i++ }
+                continue
+            }
+            i++
+        }
+
+        if (toRemove.isNotEmpty()) {
+            iosController.writeText(lines.filterIndexed { idx, _ -> idx !in toRemove }.joinToString("\n"))
+            println("   Stripped PermissionController.ios.kt entries: ${removedIds.joinToString(", ")}")
         }
     }
 }

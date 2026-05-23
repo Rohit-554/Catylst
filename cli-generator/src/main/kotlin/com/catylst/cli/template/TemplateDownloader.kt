@@ -74,10 +74,14 @@ object TemplateDownloader {
     }
 
     private fun extractZip(zipFile: File, destDir: File) {
+        val canonicalDest = destDir.canonicalFile
         ZipInputStream(zipFile.inputStream()).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
-                val outFile = File(destDir, entry.name)
+                val outFile = File(destDir, entry.name).canonicalFile
+                require(outFile.startsWith(canonicalDest)) {
+                    "Zip slip blocked: ${entry.name}"
+                }
                 if (entry.isDirectory) {
                     outFile.mkdirs()
                 } else {

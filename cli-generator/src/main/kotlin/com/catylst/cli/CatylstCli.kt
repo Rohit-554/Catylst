@@ -49,6 +49,11 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
         help = "Comma-separated feature IDs: ai, notifications, permissions, room, preferences, ktor, server"
     )
 
+    private val permissionTypes by option(
+        "--permission-types",
+        help = "Comma-separated permission types when using permissions feature: CAMERA, LOCATION, NOTIFICATIONS, RECORD_AUDIO, STORAGE"
+    )
+
     private val noSampleCode by option(
         "--no-sample",
         help = "Exclude sample/demo code"
@@ -324,7 +329,11 @@ class CatylstCli : CoreCliktCommand(name = "catylst") {
         val themeSeed = themeColor?.let { requireValidHexColor(it) }
         val expressive = themeExpressive
 
-        return InteractiveResult(pkg, app, proj, resolvedFeatures, sample, ais, themeSeed, expressive)
+        val selectedPermissions = if ("permissions" in resolvedFeatures && permissionTypes != null) {
+            permissionTypes!!.split(",").map { it.trim().uppercase() }.toSet()
+        } else null
+
+        return InteractiveResult(pkg, app, proj, resolvedFeatures, sample, ais, themeSeed, expressive, selectedPermissions = selectedPermissions)
     }
 
     private fun promptFontFile(label: String): File? {

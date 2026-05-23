@@ -1,0 +1,38 @@
+<idea-plugin>
+    <id>com.catylst.kmp.starter</id>
+    <name>Catylst KMP Starter</name>
+    <vendor>Catylst</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.android</depends>
+    <description><![CDATA[
+        Generate a production-ready Kotlin Multiplatform project with a guided wizard.<br/>
+        Supports Android, iOS, and Desktop targets with optional features including
+        Room, Ktor, AI integration, push notifications, permissions, and more.<br/><br/>
+        Use <b>File → New → Catylst KMP Project…</b> to get started.
+    ]]></description>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- IntelliJ IDEA: shows in New Project dialog (not applicable in Android Studio) -->
+        <directoryProjectGenerator
+                implementation="com.catylst.plugin.wizard.CatylstNewProjectWizard"/>
+    </extensions>
+
+    <actions>
+        <!-- File → New → Catylst KMP Project… (works in both IntelliJ IDEA and Android Studio) -->
+        <action id="com.catylst.NewProject"
+                class="com.catylst.plugin.action.NewCatylstProjectAction"
+                text="Catylst KMP Project…"
+                description="Create a new Kotlin Multiplatform project with Catylst">
+            <add-to-group group-id="NewGroup" anchor="first"/>
+        </action>
+
+        <!-- Welcome screen → New Project button group -->
+        <action id="com.catylst.NewProjectWelcome"
+                class="com.catylst.plugin.action.NewCatylstProjectAction"
+                text="Catylst KMP Project…"
+                description="Create a new Kotlin Multiplatform project with Catylst">
+            <add-to-group group-id="WelcomeScreen.QuickStart.groups" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>
