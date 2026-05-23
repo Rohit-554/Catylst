@@ -15,7 +15,7 @@ Kotlin Multiplatform starter kit for Android, iOS, and Desktop. Ships with AI in
 
 ---
 
-## Demo (plugin)
+## Demo (plugin) - Coming Soon
 <img width="1301" height="936" alt="Screenshot 2026-05-24 at 12 39 44 AM" src="https://github.com/user-attachments/assets/8c1ee989-3d86-4a76-94cb-42879698b360" />
 
 
