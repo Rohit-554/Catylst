@@ -1,24 +1,24 @@
 package com.catylst.plugin.wizard
 
-import com.catylst.plugin.model.AiProvider
 import com.catylst.plugin.model.GeneratorConfig
 import com.catylst.plugin.model.loadManifest
 import com.catylst.plugin.template.ProjectGenerator
 import com.catylst.plugin.wizard.panels.FeatureSelectionPanel
 import com.catylst.plugin.wizard.panels.ProjectConfigPanel
 import com.catylst.plugin.wizard.panels.ThemePanel
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
-import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TextBrowseFolderListener
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -38,50 +38,25 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
     private val configPanel = ProjectConfigPanel()
     private val featurePanel = FeatureSelectionPanel(manifest?.features ?: emptyList())
     private val themePanel = ThemePanel()
-
-    private val locationField = TextFieldWithBrowseButton().also { field ->
-        val homeDir = System.getProperty("user.home")
-        field.text = "$homeDir/Projects"
-        field.addBrowseFolderListener(
-            "Choose Output Directory",
-            "Select where to create the project",
-            project,
-            FileChooserDescriptorFactory.createSingleFolderDescriptor()
-        )
-    }
+    private val locationField = createLocationField()
 
     init {
         title = "New Catylst KMP Project"
         setOKButtonText("Create Project")
         init()
-
     }
 
     override fun createCenterPanel(): JComponent {
-        val content = JPanel().also { root ->
-            root.layout = BoxLayout(root, BoxLayout.Y_AXIS)
-            root.add(locationRow())
-            root.add(configPanel)
-            root.add(featurePanel)
-            root.add(themePanel)
+        val content = JPanel().also { panel ->
+            panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+            panel.add(locationRow())
+            panel.add(configPanel)
+            panel.add(featurePanel)
+            panel.add(themePanel)
         }
-
         return JScrollPane(content).also {
             it.border = null
             it.preferredSize = Dimension(600, 620)
-        }
-    }
-
-    private fun locationRow(): JPanel {
-        return JPanel(GridBagLayout()).also { panel ->
-            val gbc = GridBagConstraints().apply {
-                insets = Insets(4, 8, 4, 8)
-                anchor = GridBagConstraints.WEST
-            }
-            gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.NONE
-            panel.add(JLabel("Location:"), gbc)
-            gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0
-            panel.add(locationField, gbc)
         }
     }
 
@@ -89,8 +64,7 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
         if (!configPanel.isComponentValid()) {
             return ValidationInfo("Please enter a valid app name and package name.", configPanel.packageNameField)
         }
-        val location = locationField.text.trim()
-        if (location.isEmpty()) {
+        if (locationField.text.trim().isEmpty()) {
             return ValidationInfo("Please choose an output directory.", locationField)
         }
         return null
@@ -99,52 +73,88 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
     override fun doOKAction() {
         val settings = buildSettings()
         close(OK_EXIT_CODE)
+        generateProject(settings)
+    }
 
-        val outputDir = File(settings.outputDir)
-        outputDir.mkdirs()
+    private fun createLocationField(): TextFieldWithBrowseButton {
+        val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
+            .withTitle("Choose Output Directory")
+            .withDescription("Select where to create the project")
+        return TextFieldWithBrowseButton().also { field ->
+            field.text = "${System.getProperty("user.home")}/Projects"
+            field.addBrowseFolderListener(TextBrowseFolderListener(descriptor, project))
+        }
+    }
 
-        val config = GeneratorConfig(
+    private fun locationRow(): JPanel = JPanel(GridBagLayout()).also { panel ->
+        val gbc = GridBagConstraints().apply {
+            insets = Insets(4, 8, 4, 8)
+            anchor = GridBagConstraints.WEST
+        }
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.NONE
+        panel.add(JLabel("Location:"), gbc)
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0
+        panel.add(locationField, gbc)
+    }
+
+    private fun generateProject(settings: CatylstProjectSettings) {
+        val outputDir = File(settings.outputDir).also { it.mkdirs() }
+        val projectDir = File(outputDir, settings.projectFolder)
+        val config = buildGeneratorConfig(settings, outputDir)
+        ProgressManager.getInstance().run(generationTask(config, projectDir, settings.projectFolder))
+    }
+
+    private fun buildGeneratorConfig(settings: CatylstProjectSettings, outputDir: File): GeneratorConfig =
+        GeneratorConfig(
             packageName = settings.packageName,
             appName = settings.appName,
             projectName = settings.projectFolder,
             features = settings.features,
             sampleCode = settings.sampleCode,
-            aiProvider = if ("ai" in settings.features) settings.aiProvider else AiProvider.NONE,
+            aiProvider = settings.effectiveAiProvider(),
             themeSeedColor = settings.themeSeedColor,
             themeExpressive = settings.themeExpressive,
             selectedPermissions = settings.selectedPermissions,
             outputDir = outputDir
         )
 
-        ProgressManager.getInstance().run(object : Task.Modal(project, "Generating Catylst KMP Project", false) {
+    private fun generationTask(config: GeneratorConfig, projectDir: File, projectName: String) =
+        object : Task.Modal(project, "Generating Catylst KMP Project", false) {
             override fun run(indicator: ProgressIndicator) {
                 indicator.isIndeterminate = false
                 try {
-                    ProjectGenerator.generate(config) { message ->
-                        indicator.text = message
-                        indicator.fraction = minOf(indicator.fraction + 0.1, 0.95)
-                    }
-                    indicator.fraction = 1.0
-
-                    val projectDir = File(outputDir, settings.projectFolder)
-                    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir)
-
-                    ApplicationManager.getApplication().invokeLater {
-                        ProjectUtil.openOrImport(
-                            projectDir.toPath(),
-                            OpenProjectTask {
-                                forceOpenInNewFrame = true
-                                projectName = settings.projectFolder
-                            }
-                        )
-                    }
+                    runGeneration(config, indicator)
+                    openGeneratedProject(projectDir, projectName)
                 } catch (e: Exception) {
-                    com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
-                        Messages.showErrorDialog(project, e.message ?: "Unknown error", "Generation Failed")
-                    }
+                    reportGenerationFailure(e)
                 }
             }
-        })
+        }
+
+    private fun runGeneration(config: GeneratorConfig, indicator: ProgressIndicator) {
+        ProjectGenerator.generate(config) { message ->
+            indicator.text = message
+            indicator.fraction = minOf(indicator.fraction + 0.1, 0.95)
+        }
+        indicator.fraction = 1.0
+    }
+
+    private fun openGeneratedProject(projectDir: File, projectName: String) {
+        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir)
+        ApplicationManager.getApplication().invokeLater {
+            ProjectUtil.openOrImport(
+                projectDir.toPath(),
+                OpenProjectTask.build()
+                    .withForceOpenInNewFrame(true)
+                    .withProjectName(projectName)
+            )
+        }
+    }
+
+    private fun reportGenerationFailure(e: Exception) {
+        ApplicationManager.getApplication().invokeLater {
+            Messages.showErrorDialog(project, e.message ?: "Unknown error", "Generation Failed")
+        }
     }
 
     private fun buildSettings() = CatylstProjectSettings(
