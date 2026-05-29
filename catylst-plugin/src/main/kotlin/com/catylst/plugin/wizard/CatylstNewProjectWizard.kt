@@ -8,11 +8,12 @@ import com.catylst.plugin.wizard.panels.AiProviderPanel
 import com.catylst.plugin.wizard.panels.FeatureSelectionPanel
 import com.catylst.plugin.wizard.panels.ProjectConfigPanel
 import com.catylst.plugin.wizard.panels.ThemePanel
-import com.intellij.ide.util.projectWizard.SettingsStep
 import com.intellij.facet.ui.ValidationResult
+import com.intellij.ide.util.projectWizard.SettingsStep
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.ValidationInfo
@@ -39,12 +40,13 @@ data class CatylstProjectSettings(
     val outputDir: String = ""
 )
 
+fun CatylstProjectSettings.effectiveAiProvider() =
+    if ("ai" in features) aiProvider else AiProvider.NONE
+
 class CatylstNewProjectWizard : DirectoryProjectGenerator<CatylstProjectSettings> {
 
     override fun getName(): String = "Catylst KMP"
-
     override fun getLogo(): Icon? = null
-
     override fun validate(baseDirPath: String): ValidationResult = ValidationResult.OK
 
     override fun createPeer(): ProjectGeneratorPeer<CatylstProjectSettings> =
@@ -54,22 +56,29 @@ class CatylstNewProjectWizard : DirectoryProjectGenerator<CatylstProjectSettings
         project: Project,
         baseDir: VirtualFile,
         settings: CatylstProjectSettings,
-        module: com.intellij.openapi.module.Module
+        module: Module
     ) {
+        val config = buildGeneratorConfig(settings, baseDir)
+        ProgressManager.getInstance().run(generationTask(project, config))
+    }
+
+    private fun buildGeneratorConfig(settings: CatylstProjectSettings, baseDir: VirtualFile): GeneratorConfig {
         val outputDir = File(baseDir.path).parentFile ?: File(baseDir.path)
-        val config = GeneratorConfig(
+        return GeneratorConfig(
             packageName = settings.packageName,
             appName = settings.appName,
             projectName = settings.projectFolder,
             features = settings.features,
             sampleCode = settings.sampleCode,
-            aiProvider = if ("ai" in settings.features) settings.aiProvider else AiProvider.NONE,
+            aiProvider = settings.effectiveAiProvider(),
             themeSeedColor = settings.themeSeedColor,
             themeExpressive = settings.themeExpressive,
             outputDir = outputDir
         )
+    }
 
-        ProgressManager.getInstance().run(object : Task.Modal(project, "Generating Catylst KMP Project", false) {
+    private fun generationTask(project: Project, config: GeneratorConfig) =
+        object : Task.Modal(project, "Generating Catylst KMP Project", false) {
             override fun run(indicator: ProgressIndicator) {
                 indicator.isIndeterminate = false
                 try {
@@ -81,8 +90,7 @@ class CatylstNewProjectWizard : DirectoryProjectGenerator<CatylstProjectSettings
                     Messages.showErrorDialog(project, e.message ?: "Unknown error", "Generation Failed")
                 }
             }
-        })
-    }
+        }
 }
 
 class CatylstProjectGeneratorPeer : ProjectGeneratorPeer<CatylstProjectSettings> {
@@ -94,19 +102,19 @@ class CatylstProjectGeneratorPeer : ProjectGeneratorPeer<CatylstProjectSettings>
     private val aiPanel = AiProviderPanel()
     private val themePanel = ThemePanel()
 
-    private val root: JPanel = JPanel().also { root ->
-        root.layout = BoxLayout(root, BoxLayout.Y_AXIS)
-        root.add(configPanel)
-        root.add(featurePanel)
-        root.add(aiPanel)
-        root.add(themePanel)
-
-        // Initial AI section visibility
+    private val settingsPanel: JPanel = JPanel().also { panel ->
+        panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+        panel.add(configPanel)
+        panel.add(featurePanel)
+        panel.add(aiPanel)
+        panel.add(themePanel)
         aiPanel.showAiSection(featurePanel.isAiSelected())
     }
 
-    private val scrollPane = JScrollPane(root).also { it.border = null }
+    private val scrollPane = JScrollPane(settingsPanel).also { it.border = null }
 
+    // Abstract in targeted platform builds 233–251; both overrides coexist until sinceBuild is raised.
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun getComponent(): JComponent = scrollPane
 
     override fun buildUI(settingsStep: SettingsStep) {
