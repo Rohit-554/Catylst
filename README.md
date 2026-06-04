@@ -7,15 +7,17 @@
 ![Navigation3](https://img.shields.io/badge/Navigation-3.0-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 ![Material3](https://img.shields.io/badge/Material-M3%20Expressive-F06292?style=flat-square)
 ![npm](https://img.shields.io/npm/v/catylst?style=flat-square&logo=npm&color=CB3837)
+![JetBrains Plugin](https://img.shields.io/badge/JetBrains-Marketplace-000000?style=flat-square&logo=jetbrains&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)
 
 Kotlin Multiplatform starter kit for Android, iOS, and Desktop. Ships with AI integration, push notifications, runtime permissions, local database, networking, and modern navigation — all pre-wired and ready to build.
 
 **Docs:** [rohit-554.github.io/Catylst](https://rohit-554.github.io/Catylst/)
+**IDE Plugin:** [Catylst KMP Starter on JetBrains Marketplace](https://plugins.jetbrains.com/plugin/31925-catylst-kmp-starter/versions?noRedirect=true)
 
 ---
 
-## Demo (plugin) - Coming Soon
+## Demo (plugin)
 <img width="1301" height="936" alt="Screenshot 2026-05-24 at 12 39 44 AM" src="https://github.com/user-attachments/assets/8c1ee989-3d86-4a76-94cb-42879698b360" />
 
 
@@ -28,6 +30,16 @@ Kotlin Multiplatform starter kit for Android, iOS, and Desktop. Ships with AI in
 ---
 
 ## Quick start
+
+### Option 1 — IDE plugin (Android Studio / IntelliJ IDEA)
+
+Install **Catylst KMP Starter** from the JetBrains Marketplace, then generate a project from
+**File → New → Project → Catylst KMP Starter**.
+
+- Marketplace: [plugins.jetbrains.com/plugin/31925-catylst-kmp-starter](https://plugins.jetbrains.com/plugin/31925-catylst-kmp-starter/versions?noRedirect=true)
+- Or in-IDE: **Settings → Plugins → Marketplace**, search "Catylst KMP Starter".
+
+### Option 2 — CLI
 
 Install the CLI and generate a project:
 
