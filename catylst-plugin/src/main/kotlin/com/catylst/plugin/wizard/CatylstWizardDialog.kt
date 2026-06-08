@@ -139,6 +139,7 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
         indicator.fraction = 1.0
     }
 
+    @Suppress("UnstableApiUsage")
     private fun openGeneratedProject(projectDir: File, projectName: String) {
         LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir)
         ApplicationManager.getApplication().invokeLater {

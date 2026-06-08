@@ -27,6 +27,11 @@ intellijPlatform {
     publishing {
         token = providers.environmentVariable("PUBLISH_TOKEN")
     }
+    pluginVerification {
+        ides {
+            local("/Applications/Android Studio.app")
+        }
+    }
 }
 
 dependencies {
