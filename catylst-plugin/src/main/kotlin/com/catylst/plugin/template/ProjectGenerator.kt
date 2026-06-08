@@ -79,7 +79,7 @@ object ProjectGenerator {
         onProgress("Done!")
     }
 
-    private val SKIP_COPY = setOf("cli-generator", "catylst-plugin", "build", ".gradle", ".kotlin", ".git", ".idea")
+    private val SKIP_COPY = setOf("cli-generator", "catylst-plugin", "build", ".gradle", ".kotlin", ".git", ".idea", ".github")
 
     private fun deepCopy(source: File, destination: File) {
         if (source.isDirectory) {
