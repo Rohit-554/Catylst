@@ -57,6 +57,8 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
         return JScrollPane(content).also {
             it.border = null
             it.preferredSize = Dimension(600, 620)
+            it.verticalScrollBar.unitIncrement = 16
+            it.horizontalScrollBar.unitIncrement = 16
         }
     }
 
