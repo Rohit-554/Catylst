@@ -12,6 +12,8 @@ object ProjectCleaner {
         File(projectDir, "cli-generator").deleteRecursively()
         File(projectDir, "catylst-plugin").deleteRecursively()
         File(projectDir, "docs").deleteRecursively()
+        // local.properties holds a machine-specific sdk.dir path; Android Studio regenerates it on import
+        File(projectDir, "local.properties").delete()
         File(projectDir, "scripts/setup.sh").delete()
         File(projectDir, "scripts/install.sh").delete()
         File(projectDir, "AGENTS.md").delete()
