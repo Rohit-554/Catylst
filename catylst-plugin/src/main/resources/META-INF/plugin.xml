@@ -12,6 +12,15 @@
         Use <b>File → New → Catylst KMP Project…</b> to get started.
     ]]></description>
 
+    <change-notes><![CDATA[
+        <b>1.0.5</b>
+        <ul>
+            <li>Faster mouse-wheel scrolling in the project wizard.</li>
+            <li>Package name now auto-corrects from the application name, and clears when the name is emptied.</li>
+            <li>Generated projects no longer ship a stale <code>local.properties</code> — Android Studio regenerates it on import.</li>
+        </ul>
+    ]]></change-notes>
+
     <actions>
         <!-- File → New → Catylst KMP Project… (works in both IntelliJ IDEA and Android Studio) -->
         <action id="com.catylst.NewProject"
