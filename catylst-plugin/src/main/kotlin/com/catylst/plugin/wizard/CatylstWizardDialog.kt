@@ -4,6 +4,7 @@ import com.catylst.plugin.model.GeneratorConfig
 import com.catylst.plugin.model.loadManifest
 import com.catylst.plugin.template.ProjectGenerator
 import com.catylst.plugin.wizard.panels.FeatureSelectionPanel
+import com.catylst.plugin.wizard.panels.PlatformSelectionPanel
 import com.catylst.plugin.wizard.panels.ProjectConfigPanel
 import com.catylst.plugin.wizard.panels.ThemePanel
 import com.intellij.ide.impl.OpenProjectTask
@@ -36,6 +37,7 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
     private val manifest = runCatching { loadManifest() }.getOrNull()
 
     private val configPanel = ProjectConfigPanel()
+    private val platformPanel = PlatformSelectionPanel()
     private val featurePanel = FeatureSelectionPanel(manifest?.features ?: emptyList())
     private val themePanel = ThemePanel()
     private val locationField = createLocationField()
@@ -51,6 +53,7 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
             panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
             panel.add(locationRow())
             panel.add(configPanel)
+            panel.add(platformPanel)
             panel.add(featurePanel)
             panel.add(themePanel)
         }
@@ -68,6 +71,9 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
         }
         if (locationField.text.trim().isEmpty()) {
             return ValidationInfo("Please choose an output directory.", locationField)
+        }
+        if (!platformPanel.hasSelection()) {
+            return ValidationInfo("Select at least one target platform.", platformPanel.androidCheckbox)
         }
         return null
     }
@@ -117,6 +123,10 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
             themeSeedColor = settings.themeSeedColor,
             themeExpressive = settings.themeExpressive,
             selectedPermissions = settings.selectedPermissions,
+            selectedSkillIds = settings.selectedSkills,
+            includeAndroid = settings.includeAndroid,
+            includeIos = settings.includeIos,
+            includeDesktop = settings.includeDesktop,
             outputDir = outputDir
         )
 
@@ -170,6 +180,10 @@ class CatylstWizardDialog(private val project: Project?) : DialogWrapper(project
         themeSeedColor = themePanel.seedColorHex(),
         themeExpressive = themePanel.isExpressive(),
         selectedPermissions = featurePanel.selectedPermissions(),
+        selectedSkills = featurePanel.selectedSkills(),
+        includeAndroid = platformPanel.includeAndroid(),
+        includeIos = platformPanel.includeIos(),
+        includeDesktop = platformPanel.includeDesktop(),
         outputDir = locationField.text.trim()
     )
 }

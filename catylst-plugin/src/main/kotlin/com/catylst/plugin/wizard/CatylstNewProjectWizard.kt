@@ -12,6 +12,10 @@ data class CatylstProjectSettings(
     val themeSeedColor: String?,
     val themeExpressive: Boolean,
     val selectedPermissions: Set<String> = emptySet(),
+    val selectedSkills: Set<String> = emptySet(),
+    val includeAndroid: Boolean = true,
+    val includeIos: Boolean = true,
+    val includeDesktop: Boolean = true,
     val outputDir: String = ""
 )
 
