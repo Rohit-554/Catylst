@@ -6,8 +6,17 @@ import java.io.File
 
 object ProjectCleaner {
 
+    // Wizard skill ID → .claude/skills folder name (they don't all match 1:1).
+    private val SKILL_FOLDERS = mapOf(
+        "bloom-build" to "bloom-build",
+        "bloom-navigate" to "bloom-navigate",
+        "compose-expert" to "compose",
+        "clean-code" to "clean-code",
+        "figma-to-compose" to "figma-mcp"
+    )
+
     fun clean(projectDir: File, config: GeneratorConfig) {
-        File(projectDir, ".claude").deleteRecursively()
+        applyAgentSkills(projectDir, config)
         File(projectDir, "npm").deleteRecursively()
         File(projectDir, "cli-generator").deleteRecursively()
         File(projectDir, "catylst-plugin").deleteRecursively()
@@ -26,6 +35,31 @@ object ProjectCleaner {
         generateReadme(projectDir, config)
 
         File(projectDir, ".git").deleteRecursively()
+    }
+
+    /**
+     * Handles the `.claude` agent tooling folder. When "agent-skills" is selected, keep `.claude`
+     * but prune `skills/` down to the user's chosen skills. Otherwise remove `.claude` entirely.
+     */
+    private fun applyAgentSkills(projectDir: File, config: GeneratorConfig) {
+        val claudeDir = File(projectDir, ".claude")
+        if (!claudeDir.exists()) return
+
+        if ("agent-skills" !in config.features) {
+            claudeDir.deleteRecursively()
+            return
+        }
+
+        val keep = config.selectedSkillIds.mapNotNull { SKILL_FOLDERS[it] }.toSet()
+        if (keep.isEmpty()) {
+            // Feature on but nothing chosen — no skills to ship.
+            claudeDir.deleteRecursively()
+            return
+        }
+
+        File(claudeDir, "skills").listFiles()?.forEach { dir ->
+            if (dir.isDirectory && dir.name !in keep) dir.deleteRecursively()
+        }
     }
 
     private fun stripInternalIncludes(projectDir: File) {
@@ -50,7 +84,7 @@ object ProjectCleaner {
 
         val content = """# ${config.appName}
 
-Generated with Catylst KMP Starter Kit.
+Generated with [Catylst KMP Starter Kit](https://github.com/Rohit-554/Catylst).
 
 ## Features
 $featuresList$aiProviderText

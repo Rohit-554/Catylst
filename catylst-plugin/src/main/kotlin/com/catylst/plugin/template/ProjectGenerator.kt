@@ -73,6 +73,9 @@ object ProjectGenerator {
             )
         }
 
+        onProgress("Stripping unselected platforms…")
+        PlatformStripper.strip(projectDir, config)
+
         onProgress("Cleaning up…")
         ProjectCleaner.clean(projectDir, config)
 

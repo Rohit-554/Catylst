@@ -47,6 +47,9 @@ workmanager = "2.10.1"
 # Alarmee
 alarmee = "2.4.0"
 
+# Desktop (JVM) coroutines Main dispatcher
+kotlinx-coroutines = "1.10.2"
+
 # Testing
 kotlinx-coroutines-test = "1.10.2"
 turbine = "1.2.0"
@@ -126,6 +129,9 @@ multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings
 
 # Alarmee
 alarmee = { module = "io.github.tweener:alarmee", version.ref = "alarmee" }
+
+# Desktop (JVM) coroutines Main dispatcher (Dispatchers.Main on Swing)
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
 # Testing
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }

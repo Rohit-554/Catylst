@@ -59,6 +59,14 @@ object FeatureRemover {
                 removeNotificationsManifestEntries(projectDir)
             }
 
+            if (feature.id == "permissions") {
+                // FeatureRemover deletes the permission code, but the <uses-permission> tags live
+                // inline in AndroidManifest.xml and must be stripped here. NOTIFICATIONS tags are
+                // owned by the notifications feature, so leave them to removeNotificationsManifestEntries.
+                val ids = feature.permissionTypes.map { it.id }.filter { it != "NOTIFICATIONS" }
+                PermissionStripper.stripAndroidManifestPermissions(projectDir, ids)
+            }
+
             removeGradleDeps(projectDir, feature.gradleDeps)
             removeKspProcessors(projectDir, feature.kspProcessors)
             removePluginAliases(projectDir, feature.tomlPluginKeys)

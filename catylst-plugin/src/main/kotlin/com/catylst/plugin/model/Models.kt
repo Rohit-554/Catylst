@@ -120,6 +120,8 @@ data class GeneratorConfig(
     val themeFonts: Map<String, java.io.File?> = emptyMap(),
     val selectedPermissions: Set<String>? = null,
     val selectedSkills: List<SkillEntry> = emptyList(),
+    /** Wizard skill IDs (e.g. "bloom-build") to keep under .claude/skills when "agent-skills" is selected. */
+    val selectedSkillIds: Set<String> = emptySet(),
     val outputDir: java.io.File
 ) {
     val packagePath: String get() = packageName.replace(".", "/")

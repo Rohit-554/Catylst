@@ -10,24 +10,23 @@ mkdir -p "$(dirname "$OUTPUT")"
 # Remove stale zip
 rm -f "$OUTPUT"
 
+# Patterns are matched against archive entry names (no leading "./"), so each junk
+# directory needs both a root-level form ("name/*") and a nested form ("*/name/*").
 zip -r "$OUTPUT" . \
-  --exclude "*/cli-generator/*" \
-  --exclude "*/catylst-plugin/*" \
-  --exclude "*/.git" \
-  --exclude "*/.git/*" \
-  --exclude "*/build" \
-  --exclude "*/build/*" \
-  --exclude "*/.gradle" \
-  --exclude "*/.gradle/*" \
-  --exclude "*/.idea" \
-  --exclude "*/.idea/*" \
-  --exclude "*/.kotlin" \
-  --exclude "*/.kotlin/*" \
-  --exclude "*/.DS_Store" \
-  --exclude "*/xcuserdata/*" \
-  --exclude "*/node_modules/*" \
-  --exclude "*/npm/*" \
-  --exclude "*/docs/*" \
-  --exclude "*/scripts/bundle-plugin-template.sh"
+  -x '.git/*' '*/.git/*' \
+     'build/*' '*/build/*' \
+     '.gradle/*' '*/.gradle/*' \
+     '.kotlin/*' '*/.kotlin/*' \
+     '.idea/*' '*/.idea/*' \
+     'cli-generator/*' \
+     'catylst-plugin/*' \
+     'npm/*' '*/npm/*' \
+     'docs/*' '*/docs/*' \
+     '*/node_modules/*' \
+     '*/xcuserdata/*' \
+     '*.DS_Store' \
+     'local.properties' \
+     '.claude/settings.local.json' '*/.claude/settings.local.json' \
+     'scripts/bundle-plugin-template.sh'
 
 echo "✅ Bundled template → $OUTPUT ($(du -sh "$OUTPUT" | cut -f1))"
