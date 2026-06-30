@@ -255,7 +255,8 @@
 
   <div class="nav-section">Getting Started</div>
   <a class="nav-link" href="#overview"><i data-lucide="layers" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Overview</a>
-  <a class="nav-link" href="#setup"><i data-lucide="rocket" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Project Setup</a>
+  <a class="nav-link" href="#generate"><i data-lucide="rocket" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Generate a Project</a>
+  <a class="nav-link" href="#platforms"><i data-lucide="layout-grid" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Platform Selection</a>
   <a class="nav-link" href="#ai-setup"><i data-lucide="brain-circuit" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>AI Services</a>
   <a class="nav-link" href="#build"><i data-lucide="hammer" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Build Commands</a>
 
@@ -266,7 +267,7 @@
   <a class="nav-link" href="#navigation"><i data-lucide="map" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Navigation</a>
 
   <div class="nav-section">Reference</div>
-  <a class="nav-link" href="#skills"><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Claude Code Skills</a>
+  <a class="nav-link" href="#skills"><i data-lucide="zap" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Agent Skills</a>
   <a class="nav-link" href="#pitfalls"><i data-lucide="alert-triangle" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i>Common Pitfalls</a>
 </nav>
 
@@ -277,35 +278,55 @@
   <!-- Overview -->
   <section id="overview">
     <h2><i data-lucide="layers" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Overview</h2>
-    <p>Catylst is a fully-wired KMP project with Android, iOS, and Desktop targets. Every built-in feature can be stripped in minutes using the included Claude Code skills.</p>
-    <p>Built-in features: Compose Multiplatform UI, Koin DI, Room 3 database, Ktor networking, Navigation3, WorkManager notifications, cross-platform permissions, multiplatform preferences, and provider-agnostic AI (Claude / Groq / Gemini).</p>
+    <p>Catylst is a fully-wired KMP project. Generate a fresh project from the <strong>IDE plugin</strong> or <strong>CLI</strong> — pick which of Android, iOS, and Desktop you want, and the rest is stripped out. Every built-in feature can also be removed later in minutes using the included Claude Code skills.</p>
+    <p>Built-in features: Compose Multiplatform UI, Koin DI, Room 3.1 database, Ktor networking, a Ktor server backend module, Navigation3, WorkManager / UNUserNotificationCenter notifications, cross-platform runtime permissions, multiplatform preferences, and provider-agnostic AI (Claude / Groq / Gemini).</p>
   </section>
 
-  <!-- Setup -->
-  <section id="setup">
-    <h2><i data-lucide="rocket" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Project Setup</h2>
-    <p>Run the setup script <strong>once</strong> immediately after cloning. It renames everything - package, app name, source directories, iOS config - then deletes itself and the <code>docs/</code> folder.</p>
-    <pre><code><span class="cm"># Clone</span>
-git clone https://github.com/your-org/catylst.git myapp
+  <!-- Generate -->
+  <section id="generate">
+    <h2><i data-lucide="rocket" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Generate a Project</h2>
+    <p>Two ways to scaffold a project. Both let you name your package and app, choose target platforms, select features, and pick an AI provider — no manual renaming required.</p>
+
+    <h3>Option 1 — IDE Plugin (recommended)</h3>
+    <p>Install <strong>Catylst KMP Starter</strong> from the JetBrains Marketplace (Android Studio / IntelliJ), then create a project through the wizard.</p>
+    <pre><code><span class="cm"># In the IDE</span>
+Settings → Plugins → Marketplace → search "Catylst KMP Starter" → Install
+
+<span class="cm"># Then</span>
+File → New → Project… → Catylst KMP Starter</code></pre>
+    <p>The wizard collects your package, app name, target platforms, features, and AI provider, then generates a ready-to-build project. Marketplace listing:
+      <a href="https://plugins.jetbrains.com/plugin/31925-catylst-kmp-starter" style="color:var(--accent3);">plugins.jetbrains.com/plugin/31925-catylst-kmp-starter</a>.</p>
+
+    <h3>Option 2 — CLI</h3>
+    <pre><code><span class="cm"># Install</span>
+npm install -g catylst
+
+<span class="cm"># or via the install script</span>
+bash &lt;(curl -sSL https://raw.githubusercontent.com/Rohit-554/Catylst/main/scripts/install.sh)
+
+<span class="cm"># Generate (interactive prompts for name, platforms, features, AI provider)</span>
+catylst --interactive</code></pre>
+
+    <h3>Option 3 — Clone &amp; rename manually</h3>
+    <p>If you'd rather start from the raw template, clone and run the setup script <strong>once</strong>. It renames everything — package, app name, source directories, iOS config — then deletes itself and the <code>docs/</code> folder.</p>
+    <pre><code>git clone https://github.com/Rohit-554/Catylst.git myapp
 cd myapp
-
-<span class="cm"># Rename (run once - self-destructs after)</span>
 bash scripts/setup.sh com.yourname.yourapp YourApp</code></pre>
+    <div class="callout callout-warn"><strong>One-time only.</strong> After generating (any method), sync Gradle in your IDE, then build once to verify:
+      <code>./gradlew :androidApp:assembleDebug</code>.</div>
+  </section>
 
+  <!-- Platform Selection -->
+  <section id="platforms">
+    <h2><i data-lucide="layout-grid" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Platform Selection</h2>
+    <p>When generating from the plugin or CLI you choose any combination of <strong>Android</strong>, <strong>iOS</strong>, and <strong>Desktop</strong>. Unselected platforms are <em>fully removed</em> from the generated project — source sets, Gradle targets, dependencies, and modules — so you don't carry code you won't ship.</p>
     <div class="table-wrap"><table>
-      <tr><th>Step</th><th>What happens</th></tr>
-      <tr><td>1</td><td>Replace <code>io.jadu.catylst</code> in every <code>.kt</code>, <code>.kts</code>, <code>.xml</code>, <code>.plist</code>, <code>.pbxproj</code>, <code>.xcconfig</code>, <code>.swift</code></td></tr>
-      <tr><td>2</td><td>Replace <code>Catylst</code> app name in string resources, manifests, iOS xcconfig</td></tr>
-      <tr><td>3</td><td>Update <code>rootProject.name</code> in <code>settings.gradle.kts</code></td></tr>
-      <tr><td>4</td><td>Rename source directory trees across all source sets</td></tr>
-      <tr><td>5</td><td>Delete <code>docs/</code> folder</td></tr>
-      <tr><td>6</td><td>Delete itself</td></tr>
+      <tr><th>Platform</th><th>What ships</th></tr>
+      <tr><td>Android</td><td><code>androidApp/</code> module + <code>androidMain</code> source set</td></tr>
+      <tr><td>iOS</td><td><code>iosApp/</code> Xcode project + <code>iosMain</code> source set</td></tr>
+      <tr><td>Desktop</td><td><code>desktopMain</code> source set + Compose desktop entry point, runs with <code>./gradlew :composeApp:run</code></td></tr>
     </table></div>
-
-    <div class="callout callout-warn"><strong>One-time only.</strong> After it runs, sync Gradle in your IDE then build once to verify.</div>
-
-    <h3>After setup</h3>
-    <pre><code>./gradlew :androidApp:assembleDebug</code></pre>
+    <div class="callout callout-tip"><strong>Desktop runs out of the box.</strong> Generated projects include a Compose desktop <code>main.kt</code> and <code>compose.desktop</code> application config — no extra setup needed.</div>
   </section>
 
   <!-- AI -->
@@ -340,6 +361,7 @@ gemini.api.key=AIza...</code></pre>
       <tr><td>Android release APK</td><td><code>./gradlew :androidApp:assembleRelease</code></td></tr>
       <tr><td>iOS compile check</td><td><code>./gradlew :composeApp:compileKotlinIosSimulatorArm64</code></td></tr>
       <tr><td>Desktop run</td><td><code>./gradlew :composeApp:run</code></td></tr>
+      <tr><td>Backend server run</td><td><code>./gradlew :server:run</code></td></tr>
       <tr><td>Common unit tests</td><td><code>./gradlew :composeApp:test</code></td></tr>
       <tr><td>Android unit tests</td><td><code>./gradlew :composeApp:testDebugUnitTest</code></td></tr>
       <tr><td>Regen Room code</td><td><code>./gradlew :composeApp:kspAndroidMain</code></td></tr>
@@ -402,6 +424,8 @@ gemini.api.key=AIza...</code></pre>
 │   └── src/main/kotlin/.../
 │       └── MainActivity.kt   <span class="cm"># Injects API keys, starts Koin</span>
 │
+├── server/                   <span class="cm"># Ktor server backend module (optional)</span>
+│
 └── composeApp/               <span class="cm"># ALL shared code</span>
     └── src/
         ├── commonMain/kotlin/.../
@@ -460,20 +484,16 @@ gemini.api.key=AIza...</code></pre>
 
 <span class="cm">// 4. HomeScreen.kt - button</span>
 <span class="cls">OutlinedButton</span>(onClick = onNavigateToXxx) { <span class="cls">Text</span>(<span class="str">"Open Xxx"</span>) }</code></pre>
-    <div class="callout callout-tip">Use the <code>kmp-add-screen</code> Claude Code skill for the full guided walkthrough.</div>
+    <div class="callout callout-tip">Use the <code>bloom-build</code> Claude Code skill for the full guided walkthrough — it scaffolds the screen, navigation, ViewModel, and any Room/DI wiring in one pass.</div>
   </section>
 
   <!-- Skills -->
   <section id="skills">
-    <h2><i data-lucide="zap" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Claude Code Skills</h2>
-    <p>Invoke by name in Claude Code for guided, step-by-step instructions tailored to this codebase.</p>
+    <h2><i data-lucide="zap" style="width:22px;height:22px;vertical-align:-3px;margin-right:8px;"></i>Agent Skills</h2>
+    <p>Selected skills install into <code>.claude/skills/</code> of the generated project and are picked up automatically by Claude Code. Invoke them by name for guided, step-by-step changes tailored to this codebase.</p>
     <div class="skill-grid">
-      <div class="skill-card"><div class="skill-name">kmp-add-screen</div><div class="skill-desc">Add a screen end-to-end - Screen object, navigation wiring, composable, optional ViewModel.</div></div>
-      <div class="skill-card"><div class="skill-name">kmp-add-feature</div><div class="skill-desc">Full feature scaffold: Entity → DAO → Repository → ViewModel → Screen with Koin wiring.</div></div>
-      <div class="skill-card"><div class="skill-name">kmp-ai-provider</div><div class="skill-desc">Swap or extend the AI provider. Covers auth patterns and adding a custom provider.</div></div>
-      <div class="skill-card"><div class="skill-name">kmp-notifications</div><div class="skill-desc">Add channels, schedule and cancel notifications.</div></div>
-      <div class="skill-card"><div class="skill-name">kmp-permissions</div><div class="skill-desc">Add a runtime permission - enum, manifest, plist, composable usage.</div></div>
-      <div class="skill-card"><div class="skill-name">kmp-remove-feature</div><div class="skill-desc">Strip any built-in feature with exact file and Gradle steps.</div></div>
+      <div class="skill-card"><div class="skill-name">bloom-build</div><div class="skill-desc">Build screens end-to-end — composable UI, navigation wiring, ViewModel, Room Entity/DAO/Repository, and Koin DI, all scaffolded in one pass.</div></div>
+      <div class="skill-card"><div class="skill-name">bloom-navigate</div><div class="skill-desc">Modify the generated project — swap the active AI provider, add notification channels, configure runtime permissions, or cleanly remove any built-in feature.</div></div>
     </div>
   </section>
 
