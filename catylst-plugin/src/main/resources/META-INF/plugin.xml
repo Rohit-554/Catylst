@@ -13,6 +13,15 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>1.0.6</b>
+        <ul>
+            <li>Choose target platforms (Android / iOS / Desktop) in the wizard — unselected platforms are fully stripped from the generated project.</li>
+            <li>Desktop (JVM) target now runs out of the box: a Compose desktop entry point and application config are included.</li>
+            <li>AI Agent Skills now ship correctly — the selected skills appear under <code>.claude/skills</code> in the generated project.</li>
+            <li>Deselecting Runtime Permissions now removes the matching <code>&lt;uses-permission&gt;</code> entries from the Android manifest.</li>
+            <li>Generated README links back to the Catylst repository.</li>
+            <li>Smaller download — the bundled template no longer ships Git history, build caches, or local config.</li>
+        </ul>
         <b>1.0.5</b>
         <ul>
             <li>Faster mouse-wheel scrolling in the project wizard.</li>
